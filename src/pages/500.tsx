@@ -23,7 +23,9 @@ const Custom500 = () => {
             <title>Meu Repertório</title>
             <meta name="viewport" content="initial-scale=1.0, width=device-width" />
         </Head>
-        Ops... tivemos algum problema.
+        <LayoutMobile tabSelected={undefined}>
+            Ops... tivemos algum problema.
+        </LayoutMobile>
     </>
 }
 

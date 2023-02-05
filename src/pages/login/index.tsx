@@ -18,7 +18,6 @@ export default function Login() {
   });
 
   useEffect(() => {
-    console.log(isLogged)
     if (isLogged === true) {
       router.push('/')
     }

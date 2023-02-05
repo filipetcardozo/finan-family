@@ -45,7 +45,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
 
         signInWithEmailAndPassword(auth, credentials.email, credentials.password)
             .then(() => {
-                router.push("/home")
+                router.push("/")
             })
             .catch((err) => {
                 console.log("Error in loggin: ", err)

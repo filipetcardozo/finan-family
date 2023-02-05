@@ -10,8 +10,8 @@ import { useRouter } from "next/router";
 import { AddInvoiceModal } from "../modal-addInvoice";
 
 type Props = {
-  children: ReactNode,
-  tabSelected: '/' | '/invoice-entries'
+  children: ReactNode;
+  tabSelected: '/' | '/invoice-entries' | undefined;
 }
 
 export const LayoutMobile = ({ children, tabSelected }: Props) => {
