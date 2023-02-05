@@ -56,7 +56,8 @@ export const LayoutMobile = ({ children, tabSelected }: Props) => {
         sx={{ backgroundColor: 'white' }}
       >
         <BottomNavigationAction label="Home" icon={<QueryStatsIcon />} />
-        <BottomNavigationAction label="Lançamentos" icon={<AssignmentIcon />} />
+        <BottomNavigationAction label="Despesas" icon={<AssignmentIcon />} />
+        {/* <BottomNavigationAction label="Receitas" icon={<AssignmentIcon />} /> */}
       </BottomNavigation>
     </Box>
     <AddInvoiceModal open={openAddInvoiceModal} handleClose={handleCloseModal} />

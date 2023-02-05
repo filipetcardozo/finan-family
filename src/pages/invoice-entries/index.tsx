@@ -7,6 +7,7 @@ import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
 import { Box } from '@mui/material'
 import dayjs from 'dayjs'
 import Typography from '@mui/material/Typography';
+import { formatterCurrency } from '../../utils/formatters'
 
 export default function InvoiceEntries() {
   useProtectPage()
@@ -20,7 +21,7 @@ export default function InvoiceEntries() {
     {
       field: 'value',
       headerName: 'Valor',
-      renderCell: (({ value }) => value.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' }))
+      renderCell: (({ value }) => formatterCurrency(value))
     },
     {
       field: 'description',
