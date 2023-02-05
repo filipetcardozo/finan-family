@@ -20,6 +20,7 @@ export const CurrencyInput: React.FC<Props> = ({ nameOfKeyValue, form }) => {
       prefix="R$"
       customInput={TextField}
       label='Valor' size='small' margin='normal' fullWidth
+      type='tel'
     />
   );
 };
