@@ -16,6 +16,7 @@
     "@mui/lab": "^5.0.0-alpha.118",
     "@mui/material": "^5.11.7",
     "@mui/styled-engine-sc": "^5.11.0",
+    "@mui/x-data-grid": "^5.17.22",
     "@mui/x-date-pickers": "^5.0.17",
     "@next/font": "13.1.6",
     "@types/node": "18.11.18",

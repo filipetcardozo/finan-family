@@ -67,10 +67,6 @@ export const AddInvoiceModal = ({ open, handleClose }: IProps) => {
     }
   });
 
-  console.log(form.values)
-
-  const [value, setValue] = React.useState(0);
-
   return <Dialog open={open} onClose={handleClose} fullWidth >
     <DialogTitle>Inserir despesa</DialogTitle>
     <form onSubmit={form.handleSubmit}>
@@ -99,16 +95,6 @@ export const AddInvoiceModal = ({ open, handleClose }: IProps) => {
             <MenuItem value='Esportes'>Esportes</MenuItem>
           </Select>
         </FormControl>
-        {/* <NumericFormat
-          value={form.values.value}
-          decimalSeparator=','
-          decimalScale={2}
-          fixedDecimalScale
-          prefix='R$'
-          customInput={TextField}
-          onValueChange={({ floatValue }) => { form.setFieldValue('value', floatValue) }}
-          label='Valor' size='small' margin='normal' fullWidth
-        /> */}
         <CurrencyInput nameOfKeyValue='value' form={form} />
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='pt-BR'>
           <MobileDatePicker

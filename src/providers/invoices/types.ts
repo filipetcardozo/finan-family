@@ -1,6 +1,7 @@
 import { Dayjs } from "dayjs";
 
 export type getAllInvoicesTypes = () => Promise<IInvoice[] | []>
+export type getUserInvoicesTypes = (uid: string) => Promise<IInvoice[] | []>
 
 export type IInvoice = {
     addDate: Dayjs | null;
