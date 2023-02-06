@@ -1,7 +1,7 @@
 import { IInvoice } from './../providers/invoices/types';
 import { useAuth } from './auth/useAuth';
 import { useMemo, useState, useEffect } from 'react';
-import { getUserInvoices } from '../providers/invoices/services';
+import { deleteInvoice, getUserInvoices } from '../providers/invoices/services';
 import dayjs from 'dayjs';
 
 export const useInvoices = () => {
@@ -37,9 +37,31 @@ export const useInvoices = () => {
     return totalExpenses;
   }, [invoices])
 
+  const handleUpdateInvoice = (newInvoice: IInvoice) => {
+    let index = invoices.findIndex((value => value.id === newInvoice.id))
+
+    let newArray = [...invoices];
+    newArray[index] = { ...newInvoice };
+
+    setInvoices(newArray);
+  }
+
+  const handleDeleteInvoice = async (invoiceId: string) => {
+    await deleteInvoice(invoiceId)
+
+    let index = invoices.findIndex((value => value.id === invoiceId))
+
+    let newArray = [...invoices];
+    newArray.splice(index, 1)
+
+    setInvoices(newArray);
+  }
+
   return {
     loadingGetInvoices,
     invoices,
-    monthlyExpenses
+    monthlyExpenses,
+    handleUpdateInvoice,
+    handleDeleteInvoice
   };
 }

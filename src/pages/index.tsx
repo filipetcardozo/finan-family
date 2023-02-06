@@ -49,7 +49,7 @@ export default function Home() {
               Resultado:
             </Typography>
             <Typography sx={{ fontSize: 30 }} color={revenueMonthly - monthlyExpenses > 0 ? 'green' : 'red'}>
-              {revenueMonthly - monthlyExpenses > 0 ? '+' : '-'}
+              {revenueMonthly - monthlyExpenses > 0 && '+'}
               {formatterCurrency(revenueMonthly - monthlyExpenses)}
             </Typography>
           </CardContent>

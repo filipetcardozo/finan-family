@@ -4,24 +4,20 @@ import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
+import Select from '@mui/material/Select';
 import { useFormik } from 'formik';
 import { IInvoice } from '../../providers/invoices/types';
 import dayjs, { Dayjs } from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
-import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import 'dayjs/locale/pt-br';
 import { useAuth } from '../../hooks/auth/useAuth';
-import { putInvoice } from '../../providers/invoices/services';
-import NumberFormat, { NumberFormatBase, NumericFormat } from 'react-number-format';
+import { putInvoice, updateInvoice } from '../../providers/invoices/services';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { useSnackbar } from 'notistack';
 import { CurrencyInput } from '../common/currencyInput';
@@ -29,46 +25,82 @@ import { CurrencyInput } from '../common/currencyInput';
 interface IProps {
   open: boolean,
   handleClose(): void;
+  invoice?: IInvoice;
+  handleUpdateInvoice?(newInvoice: IInvoice): void
 }
 
-export const AddInvoiceModal = ({ open, handleClose }: IProps) => {
+export const AddInvoiceModal = ({ open, handleClose, invoice, handleUpdateInvoice }: IProps) => {
   const { uid } = useAuth()
-  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar();
 
-  const initialValuesForm: IInvoice = {
+  const initialValuesForm = {
     addDate: dayjs(new Date()),
     addMonth: new Date().getMonth(),
     description: '',
     invoiceCategory: '',
     value: undefined,
-    userId: ''
-  }
+    userId: '',
+    id: ''
+  };
+
+  React.useEffect(() => {
+    if (invoice && invoice.id) {
+      form.setFieldValue('addDate', invoice.addDate);
+      form.setFieldValue('addMonth', invoice.addMonth);
+      form.setFieldValue('description', invoice.description);
+      form.setFieldValue('invoiceCategory', invoice.invoiceCategory);
+      form.setFieldValue('value', invoice.value);
+      form.setFieldValue('userId', invoice.userId);
+      form.setFieldValue('id', invoice.id);
+    }
+  }, [invoice]);
 
   const [loadingButton, setLoadingButton] = React.useState(false);
   const form = useFormik({
     initialValues: initialValuesForm,
     onSubmit: async values => {
-      let newValues = { ...values };
-      newValues.userId = uid;
       setLoadingButton(true);
 
-      await putInvoice(newValues)
-        .then((v) => {
-          enqueueSnackbar('Despesa lançada', { autoHideDuration: 2000, variant: 'success', anchorOrigin: { horizontal: 'center', vertical: 'top' } });
-          form.resetForm();
-          form.setFieldValue('value', 0);
-        })
-        .catch((err) => {
-          enqueueSnackbar('Ops... tivemos um problema.', { autoHideDuration: 2000, variant: 'error', anchorOrigin: { horizontal: 'center', vertical: 'top' } });
-        })
-        .finally(() => {
-          setLoadingButton(false);
-        })
+      if (invoice && invoice.id) {
+        await updateInvoice({ ...form.values })
+          .then(() => {
+            enqueueSnackbar('Despesa alterada', { autoHideDuration: 2000, variant: 'success', anchorOrigin: { horizontal: 'center', vertical: 'top' } });
+            if (handleUpdateInvoice) {
+              handleUpdateInvoice({ ...form.values });
+            }
+            handleClose();
+          })
+          .catch((err) => {
+            console.log(err)
+            enqueueSnackbar('Ops... tivemos um problema.', { autoHideDuration: 2000, variant: 'error', anchorOrigin: { horizontal: 'center', vertical: 'top' } });
+          })
+          .finally(() => {
+            setLoadingButton(false);
+          })
+      } else {
+        let newValues = { ...values };
+        newValues.userId = uid;
+
+        await putInvoice(newValues)
+          .then((v) => {
+            enqueueSnackbar('Despesa lançada', { autoHideDuration: 2000, variant: 'success', anchorOrigin: { horizontal: 'center', vertical: 'top' } });
+            form.resetForm();
+            form.setFieldValue('value', 0);
+          })
+          .catch((err) => {
+            enqueueSnackbar('Ops... tivemos um problema.', { autoHideDuration: 2000, variant: 'error', anchorOrigin: { horizontal: 'center', vertical: 'top' } });
+          })
+          .finally(() => {
+            setLoadingButton(false);
+          })
+      }
     }
   });
 
   return <Dialog open={open} onClose={handleClose} fullWidth >
-    <DialogTitle>Inserir despesa</DialogTitle>
+    <DialogTitle>
+      {invoice && invoice.id ? 'Alterar despesa' : 'Inserir despesa'}
+    </DialogTitle>
     <form onSubmit={form.handleSubmit}>
       <DialogContent>
         <FormControl fullWidth margin='normal' size='small'>
@@ -127,7 +159,9 @@ export const AddInvoiceModal = ({ open, handleClose }: IProps) => {
       </DialogContent>
       <DialogActions>
         <Button size='small' onClick={handleClose}>Voltar</Button>
-        <LoadingButton type='submit' variant='contained' size='small' loading={loadingButton}>Inserir</LoadingButton>
+        <LoadingButton type='submit' variant='contained' size='small' loading={loadingButton}>
+          {invoice && invoice.id ? 'Atualizar' : 'Inserir'}
+        </LoadingButton>
       </DialogActions>
     </form>
   </Dialog>
