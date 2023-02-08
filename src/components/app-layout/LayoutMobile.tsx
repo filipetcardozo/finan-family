@@ -1,5 +1,6 @@
 import { ReactNode, useState, useMemo } from "react"
 import { Fab } from '@mui/material'
+import { styled } from '@mui/material/styles';
 import AddIcon from '@mui/icons-material/Add';
 import Box from "@mui/material/Box";
 import BottomNavigation from '@mui/material/BottomNavigation';
@@ -8,6 +9,13 @@ import AssignmentIcon from '@mui/icons-material/AssignmentOutlined';
 import QueryStatsIcon from '@mui/icons-material/QueryStatsOutlined';
 import { useRouter } from "next/router";
 import { AddInvoiceModal } from "../modal-addInvoice";
+import { AppBar } from "./AppBar";
+import Toolbar from '@mui/material/Toolbar';
+import IconButton from '@mui/material/IconButton';
+import MenuIcon from '@mui/icons-material/Menu';
+import SearchIcon from '@mui/icons-material/Search';
+import MoreIcon from '@mui/icons-material/MoreVert';
+import { AppBar as AppBarMui } from '@mui/material';
 
 type Props = {
   children: ReactNode;
@@ -32,14 +40,15 @@ export const LayoutMobile = ({ children, tabSelected }: Props) => {
   const handleCloseModal = () => setOpenAddInvoiceModal(false);
   const handleOpenModal = () => setOpenAddInvoiceModal(true);
 
-  return <>
-    {children}
-    <Box sx={{ position: 'fixed', right: 15, bottom: 70 }}>
-      <Fab onClick={handleOpenModal} size='small' color='info' aria-label='add'>
-        <AddIcon fontSize='small' />
-      </Fab>
+  return <Box>
+    <AppBar />
+    <Box component='main' sx={{ mt: 10 }} width='100%'>
+      {children}
     </Box>
-    <Box sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }}>
+    <AppBarMui position="fixed" color='primary' sx={{ top: 'auto', bottom: 0 }}>
+      <StyledFab  color='secondary' onClick={handleOpenModal} aria-label="add">
+        <AddIcon color='primary' />
+      </StyledFab>
       <BottomNavigation
         showLabels
         value={tabSelectedIndex}
@@ -53,13 +62,21 @@ export const LayoutMobile = ({ children, tabSelected }: Props) => {
               break;
           }
         }}
-        sx={{ backgroundColor: 'white' }}
       >
         <BottomNavigationAction label="Home" icon={<QueryStatsIcon />} />
         <BottomNavigationAction label="Despesas" icon={<AssignmentIcon />} />
         {/* <BottomNavigationAction label="Receitas" icon={<AssignmentIcon />} /> */}
       </BottomNavigation>
-    </Box>
+    </AppBarMui>
     <AddInvoiceModal open={openAddInvoiceModal} handleClose={handleCloseModal} />
-  </>
-}
+  </Box >
+};
+
+const StyledFab = styled(Fab)({
+  position: 'absolute',
+  zIndex: 1,
+  top: -30,
+  left: 0,
+  right: 0,
+  margin: '0 auto',
+});

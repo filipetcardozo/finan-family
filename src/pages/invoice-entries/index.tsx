@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import Head from 'next/head'
-import { LayoutMobile } from '../../components/app-layout';
+import { LayoutMobile } from '../../components/app-layout/LayoutMobile';
 import { useProtectPage } from '../../hooks/auth/useAuth';
 import { useInvoices } from '../../hooks/useInvoices';
 import { IInvoice } from '../../providers/invoices/types';

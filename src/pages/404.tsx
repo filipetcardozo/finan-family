@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutMobile } from '../components/app-layout';
+import { LayoutMobile } from '../components/app-layout/LayoutMobile';
 import { useAuth, useProtectPage } from '../hooks/auth/useAuth';
 import Head from 'next/head'
 

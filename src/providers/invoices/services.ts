@@ -25,9 +25,9 @@ export const getAllInvoices: getAllInvoicesTypes = async () => {
   }
 }
 
-export const getUserInvoices: getUserInvoicesTypes = async (uid: string) => {
-  const collectionRef = collection(database, "invoices");
-  const getQuery = query(collectionRef, where("userId", "==", uid));
+export const getUserInvoices: getUserInvoicesTypes = async (uid: string, month: number) => {
+  const collectionRef = collection(database, 'invoices');
+  const getQuery = query(collectionRef, where('userId', '==', uid), where('addMonth', '==', month));
   const data = await getDocs(getQuery)
 
   if (!data.empty) {
