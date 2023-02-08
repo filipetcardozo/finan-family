@@ -21,9 +21,12 @@ import { MonthSelectedContext } from "../../contexts/monthSelected";
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import LogoutIcon from '@mui/icons-material/Logout';
+import { useAuth } from "../../hooks/auth/useAuth";
 
 export const AppBar: React.FC = () => {
     const { dateToAnalyze, handleNextMonth, handlePreviousMonth } = React.useContext(MonthSelectedContext);
+
+    const { signOut } = useAuth()
 
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
@@ -65,8 +68,8 @@ export const AppBar: React.FC = () => {
                     'aria-labelledby': 'basic-button',
                 }}
             >
-                <MenuItem onClick={handleClose}>
-                    <LogoutIcon sx={{mr: 1.5}} fontSize='small' />
+                <MenuItem onClick={signOut}>
+                    <LogoutIcon sx={{ mr: 1.5 }} fontSize='small' />
                     Sair da conta
                 </MenuItem>
             </Menu>

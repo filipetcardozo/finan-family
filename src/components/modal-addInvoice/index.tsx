@@ -33,9 +33,9 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, handleUpdateInvoic
   const { uid } = useAuth()
   const { enqueueSnackbar } = useSnackbar();
 
-  const initialValuesForm = {
+  const initialValuesForm: IInvoice = {
     addDate: dayjs(new Date()),
-    addMonth: new Date().getMonth(),
+    addDateFormatted: dayjs(new Date()).format('MM/YYYY').toString(),
     description: '',
     invoiceCategory: '',
     value: undefined,
@@ -46,7 +46,7 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, handleUpdateInvoic
   React.useEffect(() => {
     if (invoice && invoice.id) {
       form.setFieldValue('addDate', invoice.addDate);
-      form.setFieldValue('addMonth', invoice.addMonth);
+      form.setFieldValue('addDateFilter', invoice.addDateFormatted);
       form.setFieldValue('description', invoice.description);
       form.setFieldValue('invoiceCategory', invoice.invoiceCategory);
       form.setFieldValue('value', invoice.value);
@@ -111,6 +111,7 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, handleUpdateInvoic
             onChange={form.handleChange}
             value={form.values.invoiceCategory}
             variant='outlined' size='small' type='text'
+            autoComplete='off'
           >
             <MenuItem value='Alimentação'>Alimentação</MenuItem>
             <MenuItem value='Contas'>Contas</MenuItem>
@@ -136,13 +137,14 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, handleUpdateInvoic
             value={form.values.addDate}
             onChange={(v) => {
               form.setFieldValue('addDate', v)
-              form.setFieldValue('addMonth', v?.month())
+              form.setFieldValue('addDateFormatted', v?.format('MM/YYYY').toString())
             }}
             renderInput={(params) => <TextField
               {...params}
               size='small'
               margin='normal'
               name='addDate'
+              autoComplete='off'
               fullWidth
             />
             }
@@ -153,6 +155,7 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, handleUpdateInvoic
           onChange={form.handleChange}
           value={form.values.description}
           variant="outlined" size='small' margin='normal'
+          autoComplete='off'
           type='text'
           fullWidth
           multiline

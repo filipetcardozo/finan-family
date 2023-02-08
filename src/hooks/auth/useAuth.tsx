@@ -67,7 +67,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
         callSignOut(auth)
             .then(() => {
                 setIsLogged(false)
-                router.push("/auth/login")
+                router.push("/login")
             })
             .catch((error) => {
                 console.log(error)

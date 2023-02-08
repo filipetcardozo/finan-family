@@ -21,6 +21,7 @@ export const CurrencyInput: React.FC<Props> = ({ nameOfKeyValue, form }) => {
       customInput={TextField}
       label='Valor' size='small' margin='normal' fullWidth
       type='tel'
+      autoComplete='off'
     />
   );
 };

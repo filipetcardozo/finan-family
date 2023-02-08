@@ -20,8 +20,6 @@ export const MonthSelectedProvider = ({ children }: any) => {
         setDateToAnalyze(dateToAnalyze.add(-1, 'M'))
     };
 
-    // console.log(dateToAnalyze.format('DD/MM/YYYY'))
-
     const handleNextMonth = () => {
         setDateToAnalyze(dateToAnalyze.add(1, 'M'))
     };

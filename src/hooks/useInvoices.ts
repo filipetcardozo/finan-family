@@ -16,7 +16,7 @@ export const useInvoices = () => {
   useEffect(() => {
     if (uid) {
       setLoadingGetInvoices(true);
-      getUserInvoices(uid, dateToAnalyze.month())
+      getUserInvoices(uid, dateToAnalyze.format('MM/YYYY').toString())
         .then((data) => {
           setInvoices(data);
         })
