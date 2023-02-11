@@ -10,7 +10,7 @@ interface Props {
 export const PieChart: React.FC<Props> = ({
   expenses
 }) => {
-  const COLORS = ['#012a4a', '#013a63', '#01497c', '#014f86', '#2a6f97', '#2c7da0', '#468faf', '#61a5c2', '#89c2d9', '#a9d6e5'];
+  const COLORS = ['#d00000', '#ffba08', '#1b998b', '#3e517a', '#ffba08', '#cf0bf1', '#46237a', '#c3c4e9', '#9cc76d', '#4d86a5'];
   const RADIAN = Math.PI / 180;
 
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name }: any) => {
@@ -58,14 +58,14 @@ export const PieChart: React.FC<Props> = ({
     }
   }, [expenses])
 
-  return <ResponsiveContainer width='80%' height='100%'>
+  return <ResponsiveContainer width='96%' height='100%'>
     <PieChartRecharts
       width={400} height={400}
     >
       <Legend iconSize={15}
         formatter={(value, payload: any) => <text
           style={{
-            fontSize: 15,
+            fontSize: 11,
 
           }}
         >
@@ -84,8 +84,6 @@ export const PieChart: React.FC<Props> = ({
         textAnchor=''
         legendType='line'
         labelLine={false}
-        fill='#012a4a'
-        stroke='#013a63'
       >
         {expenses.map((entry, index) => (
           <Cell stroke={COLORS[index % COLORS.length]} key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

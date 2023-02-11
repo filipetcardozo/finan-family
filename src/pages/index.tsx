@@ -25,7 +25,7 @@ export default function Home() {
       </Head>
       <CssBaseline />
       <LayoutMobile tabSelected='/'>
-        <Stack flexDirection='column'>
+        <Stack flexDirection='column' justifyContent='center' alignItems='center'>
           <Box sx={{ width: 1, display: 'flex', justifyContent: 'center' }}>
             <Card variant='outlined' sx={{ width: '90%', mb: 4 }}>
               <CardContent sx={{ textAlign: 'center' }}>
@@ -53,7 +53,7 @@ export default function Home() {
               </CardContent>
             </Card>
           </Box>
-          <Box sx={{ width: 1, height: '200px', display: 'flex', justifyContent: 'center' }}>
+          <Box sx={{ width: 1, maxWidth: '400px', height: '200px', display: 'flex', justifyContent: 'center' }}>
             <PieChart expenses={invoices} />
           </Box>
         </Stack>
