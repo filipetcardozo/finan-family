@@ -3,6 +3,10 @@ import { useAuth } from './auth/useAuth';
 import { useMemo, useState, useEffect, useContext } from 'react';
 import { deleteInvoice, getUserInvoices } from '../providers/invoices/services';
 import dayjs from 'dayjs';
+var isToday = require('dayjs/plugin/isToday')
+
+dayjs.extend(isToday)
+
 import { MonthSelectedContext } from '../contexts/monthSelected';
 
 export const useInvoices = () => {
@@ -39,7 +43,7 @@ export const useInvoices = () => {
 
   const revenueMonthly = 5850;
 
-  const expenesesIndicatedPerDay = useMemo(() => {
+  const expensesIndicatedPerDay = useMemo(() => {
     let daysToEndMonth = 25 - new Date().getDate();
 
     if (revenueMonthly > monthlyExpenses) {
@@ -48,6 +52,18 @@ export const useInvoices = () => {
       return 0;
     }
   }, [monthlyExpenses])
+
+  const expensesOfDay = useMemo(() => {
+    if (invoices) {
+      return [...invoices].filter(v => {
+        if (v.addDate?.format('DD/MM/YYYY') === dayjs().format('DD/MM/YYYY')) {
+          return true;
+        }
+      })
+    } else {
+      return [];
+    }
+  }, [invoices])
 
   const handleUpdateInvoice = (newInvoice: IInvoice) => {
     let index = invoices.findIndex((value => value.id === newInvoice.id))
@@ -69,12 +85,14 @@ export const useInvoices = () => {
     setInvoices(newArray);
   }
 
+
   return {
     loadingGetInvoices,
     invoices,
     monthlyExpenses,
     handleUpdateInvoice,
     handleDeleteInvoice,
-    expenesesIndicatedPerDay
+    expensesIndicatedPerDay,
+    expensesOfDay
   };
 }

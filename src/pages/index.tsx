@@ -9,11 +9,12 @@ import CardContent from '@mui/material/CardContent';
 import Box from '@mui/material/Box';
 import { PieChart } from '../components/charts/pieChart'
 import { Stack } from '@mui/system'
+import { ExpensesOfDay } from '../components/home/expensesOfDay'
 
 export default function Home() {
   useProtectPage()
 
-  const { monthlyExpenses, expenesesIndicatedPerDay, invoices } = useInvoices();
+  const { monthlyExpenses, expensesIndicatedPerDay, invoices, expensesOfDay } = useInvoices();
 
   const revenueMonthly = 5850;
 
@@ -56,23 +57,34 @@ export default function Home() {
                 </Typography>
               </CardContent>
             </Card>
+
           </Box>
           <Box>
-            <Typography sx={{ fontSize: 18, textAlign: 'left' }} color="primary" gutterBottom>
-              Despesa diária indicada <span style={{ fontSize: 13 }}>(até o dia 25)</span>:
+            <Typography sx={{ fontSize: 18 }} color="primary">
+              Despesa diária indicada <span style={{ fontSize: 13 }}>(até o dia 25)</span>
+            </Typography>
+            <Typography sx={{ fontSize: 20, textAlign: 'center' }} color="primary">
               <span style={{
-                fontSize: 20, display: 'inline', paddingLeft: 10,
                 color: revenueMonthly - monthlyExpenses > 0 ? 'green' : 'red'
               }}>
-                {formatterCurrency(expenesesIndicatedPerDay)}
+                {formatterCurrency(expensesIndicatedPerDay)}
               </span>
             </Typography>
           </Box>
+
           <Box sx={{ width: 1, display: 'flex', justifyContent: 'center' }}>
             <Divider sx={{ my: 4, width: '90%' }} />
           </Box>
           <Typography sx={{ fontSize: 18 }} color="text.primary" gutterBottom>
-            Despesas por categoria:
+            Despesas do dia
+          </Typography>
+          <ExpensesOfDay expensesOfDay={expensesOfDay} />
+
+          <Box sx={{ width: 1, display: 'flex', justifyContent: 'center' }}>
+            <Divider sx={{ my: 4, width: '90%' }} />
+          </Box>
+          <Typography sx={{ fontSize: 18 }} color="text.primary" gutterBottom>
+            Despesas por categoria
           </Typography>
           <Box sx={{ width: 1, maxWidth: '400px', height: '200px', display: 'flex', justifyContent: 'center' }}>
             <PieChart expenses={invoices} />
