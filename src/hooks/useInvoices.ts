@@ -37,6 +37,18 @@ export const useInvoices = () => {
     return totalExpenses;
   }, [invoices])
 
+  const revenueMonthly = 5850;
+
+  const expenesesIndicatedPerDay = useMemo(() => {
+    let daysToEndMonth = 25 - new Date().getDate();
+
+    if (revenueMonthly > monthlyExpenses) {
+      return (revenueMonthly - monthlyExpenses) / daysToEndMonth;
+    } else {
+      return 0;
+    }
+  }, [monthlyExpenses])
+
   const handleUpdateInvoice = (newInvoice: IInvoice) => {
     let index = invoices.findIndex((value => value.id === newInvoice.id))
 
@@ -62,6 +74,7 @@ export const useInvoices = () => {
     invoices,
     monthlyExpenses,
     handleUpdateInvoice,
-    handleDeleteInvoice
+    handleDeleteInvoice,
+    expenesesIndicatedPerDay
   };
 }

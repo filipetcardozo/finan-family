@@ -13,9 +13,13 @@ import { Stack } from '@mui/system'
 export default function Home() {
   useProtectPage()
 
-  const { monthlyExpenses, loadingGetInvoices, invoices } = useInvoices();
+  const { monthlyExpenses, expenesesIndicatedPerDay, invoices } = useInvoices();
 
   const revenueMonthly = 5850;
+
+  const expensesPerDay = () => {
+    { formatterCurrency((revenueMonthly - monthlyExpenses)) }
+  }
 
   return (
     <>
@@ -30,33 +34,50 @@ export default function Home() {
             <Card variant='outlined' sx={{ width: '90%', mb: 4 }}>
               <CardContent sx={{ textAlign: 'center' }}>
                 <Typography sx={{ fontSize: 20 }} color="text.primary" gutterBottom>
-                  Despesas do mês:
+                  Despesas do mês
                 </Typography>
                 <Typography sx={{ fontSize: 20 }} color="red">
                   {formatterCurrency(monthlyExpenses)}
                 </Typography>
                 <Divider sx={{ my: 4 }} />
                 <Typography sx={{ fontSize: 20 }} color="text.primary" gutterBottom>
-                  Receitas:
+                  Receitas
                 </Typography>
                 <Typography sx={{ fontSize: 20 }} color="green">
                   {formatterCurrency(revenueMonthly)}
                 </Typography>
                 <Divider sx={{ my: 4 }} />
                 <Typography sx={{ fontSize: 20 }} color="text.primary" gutterBottom>
-                  Resultado:
+                  Resultado
                 </Typography>
-                <Typography sx={{ fontSize: 30 }} color={revenueMonthly - monthlyExpenses > 0 ? 'green' : 'red'}>
+                <Typography sx={{ fontSize: 30, fontWeight: 'bold' }} color={revenueMonthly - monthlyExpenses > 0 ? 'green' : 'red'}>
                   {revenueMonthly - monthlyExpenses > 0 && '+'}
                   {formatterCurrency(revenueMonthly - monthlyExpenses)}
                 </Typography>
               </CardContent>
             </Card>
           </Box>
+          <Box>
+            <Typography sx={{ fontSize: 18, textAlign: 'left' }} color="primary" gutterBottom>
+              Despesa diária indicada <span style={{ fontSize: 13 }}>(até o dia 25)</span>:
+              <span style={{
+                fontSize: 20, display: 'inline', paddingLeft: 10,
+                color: revenueMonthly - monthlyExpenses > 0 ? 'green' : 'red'
+              }}>
+                {formatterCurrency(expenesesIndicatedPerDay)}
+              </span>
+            </Typography>
+          </Box>
+          <Box sx={{ width: 1, display: 'flex', justifyContent: 'center' }}>
+            <Divider sx={{ my: 4, width: '90%' }} />
+          </Box>
+          <Typography sx={{ fontSize: 18 }} color="text.primary" gutterBottom>
+            Despesas por categoria:
+          </Typography>
           <Box sx={{ width: 1, maxWidth: '400px', height: '200px', display: 'flex', justifyContent: 'center' }}>
             <PieChart expenses={invoices} />
           </Box>
-        </Stack>
+        </Stack>x
       </LayoutMobile>
     </>
   )

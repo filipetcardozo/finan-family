@@ -75,7 +75,7 @@ export const LayoutMobile = ({ children, tabSelected }: Props) => {
 const StyledFab = styled(Fab)({
   position: 'absolute',
   zIndex: 1,
-  top: -30,
+  top: -60,
   left: 0,
   right: 0,
   margin: '0 auto',

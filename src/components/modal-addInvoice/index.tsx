@@ -127,6 +127,7 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, handleUpdateInvoic
             <MenuItem value='Faculdade'>Faculdade</MenuItem>
             <MenuItem value='Telefone'>Telefone</MenuItem>
             <MenuItem value='Saúde'>Saúde</MenuItem>
+            <MenuItem value='Estética'>Estética</MenuItem>
             <MenuItem value='Esportes'>Esportes</MenuItem>
           </Select>
         </FormControl>

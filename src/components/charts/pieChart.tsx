@@ -10,7 +10,7 @@ interface Props {
 export const PieChart: React.FC<Props> = ({
   expenses
 }) => {
-  const COLORS = ['#d00000', '#ffba08', '#1b998b', '#3e517a', '#ffba08', '#cf0bf1', '#46237a', '#c3c4e9', '#9cc76d', '#4d86a5'];
+  const COLORS = ['#d00000', '#ffba08', '#1b998b', '#3e517a', '#a480f2', '#cf0bf1', '#46237a', '#c3c4e9', '#9cc76d', '#4d86a5'];
   const RADIAN = Math.PI / 180;
 
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name }: any) => {
@@ -18,7 +18,7 @@ export const PieChart: React.FC<Props> = ({
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-    if ((percent * 100) > 5) {
+    if ((percent * 100) > 4) {
       return <text fontSize={15} x={x} y={y} fill='white' textAnchor='middle' dominantBaseline='central'>
         {`${(percent * 100).toFixed(0)}%`}
       </text>
@@ -57,6 +57,8 @@ export const PieChart: React.FC<Props> = ({
       return [];
     }
   }, [expenses])
+
+  if (!dataPieChart) return <></>;
 
   return <ResponsiveContainer width='96%' height='100%'>
     <PieChartRecharts
