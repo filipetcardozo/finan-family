@@ -42,7 +42,7 @@ export const LayoutMobile = ({ children, tabSelected }: Props) => {
 
   return <Box>
     <AppBar />
-    <Box component='main' sx={{ mt: 10 }} width='100%'>
+    <Box component='main' sx={{ mt: 10, mb: 15 }} width='100%'>
       {children}
     </Box>
     <AppBarMui position="fixed" color='primary' sx={{ top: 'auto', bottom: 0 }}>
