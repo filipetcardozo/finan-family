@@ -13,7 +13,7 @@ export const useInvoices = () => {
   const { uid } = useAuth();
 
   const [invoices, setInvoices] = useState<IInvoice[]>([]);
-  const [loadingGetInvoices, setLoadingGetInvoices] = useState(false);
+  const [loadingGetInvoices, setLoadingGetInvoices] = useState(true);
 
   const { dateToAnalyze, handleNextMonth, handlePreviousMonth } = useContext(MonthSelectedContext);
 
