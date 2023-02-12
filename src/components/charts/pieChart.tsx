@@ -66,7 +66,7 @@ export const PieChart: React.FC<Props> = ({
   if (!dataPieChart) return <></>;
 
   return <Stack flexDirection='row' width={1}>
-    <Box sx={{ width: '200px', maxHeight: '200px', overflowY: 'auto' }}>
+    <Box sx={{ width: '200px', height: '200px', overflowY: 'auto', alignItems: 'center', display: 'flex' }}>
       <List dense>
         {dataPieChart.map((v, index) => {
           return <ListItem disablePadding key={v.value} style={{ color: COLORS[index % COLORS.length] }}>
