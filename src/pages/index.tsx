@@ -1,23 +1,24 @@
-import { CssBaseline, Divider, Typography } from '@mui/material'
-import Head from 'next/head'
-import { LayoutMobile } from '../components/app-layout/LayoutMobile'
-import { useProtectPage } from '../hooks/auth/useAuth'
-import { useInvoices } from '../hooks/useInvoices'
-import { formatterCurrency } from '../utils/formatters'
+import React, { useContext } from 'react';
+import { CssBaseline, Divider, Typography } from '@mui/material';
+import Head from 'next/head';
+import { LayoutMobile } from '../components/app-layout/LayoutMobile';
+import { useProtectPage } from '../hooks/auth/useAuth';
+import { formatterCurrency } from '../utils/formatters';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Box from '@mui/material/Box';
-import { PieChart } from '../components/charts/pieChart'
-import { Stack } from '@mui/system'
-import { ExpensesOfDay } from '../components/home/expensesOfDay'
-import { LoadingHomePage } from '../components/home/loadingPage'
+import { PieChart } from '../components/charts/pieChart';
+import { Stack } from '@mui/system';
+import { ExpensesOfDay } from '../components/home/expensesOfDay';
+import { LoadingHomePage } from '../components/home/loadingPage';
 import { ImCool, ImHappy, ImSmile, ImWondering, ImSad, ImAngry, ImConfused } from "react-icons/im";
 import CSS from 'csstype';
+import { ExpensesContext } from '../contexts/expenses';
 
 export default function Home() {
   useProtectPage()
 
-  const { monthlyExpenses, expensesIndicatedPerDay, invoices, expensesOfDay, loadingGetInvoices } = useInvoices();
+  const { monthlyExpenses, expensesIndicatedPerDay, invoices, expensesOfDay, loadingGetInvoices } = useContext(ExpensesContext);
 
   const revenueMonthly = 5850;
 

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useContext } from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
@@ -21,17 +21,19 @@ import { putInvoice, updateInvoice } from '../../providers/invoices/services';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { useSnackbar } from 'notistack';
 import { CurrencyInput } from '../common/currencyInput';
+import { ExpensesContext } from '../../contexts/expenses';
 
 interface IProps {
   open: boolean,
   handleClose(): void;
   invoice?: IInvoice;
-  handleUpdateInvoice?(newInvoice: IInvoice): void
 }
 
-export const AddInvoiceModal = ({ open, handleClose, invoice, handleUpdateInvoice }: IProps) => {
+export const AddInvoiceModal = ({ open, handleClose, invoice }: IProps) => {
   const { uid } = useAuth()
   const { enqueueSnackbar } = useSnackbar();
+
+  const { handleAddInvoice, handleUpdateInvoice } = useContext(ExpensesContext);
 
   const initialValuesForm: IInvoice = {
     addDate: dayjs(new Date()),
@@ -84,8 +86,10 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, handleUpdateInvoic
         await putInvoice(newValues)
           .then((v) => {
             enqueueSnackbar('Despesa lançada', { autoHideDuration: 2000, variant: 'success', anchorOrigin: { horizontal: 'center', vertical: 'top' } });
+            handleAddInvoice(v);
             form.resetForm();
-            form.setFieldValue('value', 0);
+            form.setFieldValue('value', null);
+            handleClose();
           })
           .catch((err) => {
             enqueueSnackbar('Ops... tivemos um problema.', { autoHideDuration: 2000, variant: 'error', anchorOrigin: { horizontal: 'center', vertical: 'top' } });

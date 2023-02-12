@@ -75,12 +75,10 @@ export const deleteInvoice: deleteInvoiceTypes = async (invoiceId: string) => {
 
 
 export async function putInvoice(invoice: IInvoice) {
-  try {
-    let newInvoice: any = { ...invoice }
-    newInvoice.addDate = newInvoice.addDate?.toString()
-    const docRef = await addDoc(collection(database, 'invoices'), newInvoice);
-    return docRef.id;
-  } catch (e) {
-    return e;
-  }
+  let newInvoice: any = { ...invoice }
+  newInvoice.addDate = newInvoice.addDate?.toString()
+  const docRef = await addDoc(collection(database, 'invoices'), newInvoice);
+  return {
+    ...invoice, id: docRef.id
+  };
 }

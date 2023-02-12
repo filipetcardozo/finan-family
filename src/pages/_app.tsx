@@ -4,6 +4,7 @@ import { SnackbarProvider } from 'notistack';
 import { AuthProvider } from '../hooks/auth/useAuth';
 import { MonthSelectedProvider } from '../contexts/monthSelected';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { ExpensesProvider } from '../contexts/expenses';
 
 const theme = createTheme({
   palette: {
@@ -32,11 +33,13 @@ const theme = createTheme({
 function MyApp({ Component, pageProps }: AppProps) {
   return <AuthProvider>
     <ThemeProvider theme={theme}>
-      <MonthSelectedProvider>
-        <SnackbarProvider maxSnack={3}>
-          <Component {...pageProps} />
-        </SnackbarProvider>
-      </MonthSelectedProvider>
+      <SnackbarProvider maxSnack={3}>
+        <MonthSelectedProvider>
+          <ExpensesProvider>
+            <Component {...pageProps} />
+          </ExpensesProvider>
+        </MonthSelectedProvider>
+      </SnackbarProvider>
     </ThemeProvider>
   </AuthProvider>
 }

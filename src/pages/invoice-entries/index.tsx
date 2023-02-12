@@ -1,8 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
 import Head from 'next/head'
 import { LayoutMobile } from '../../components/app-layout/LayoutMobile';
 import { useProtectPage } from '../../hooks/auth/useAuth';
-import { useInvoices } from '../../hooks/useInvoices';
 import { IInvoice } from '../../providers/invoices/types';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { Box } from '@mui/material';
@@ -18,12 +17,13 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogTitle from '@mui/material/DialogTitle';
 import Button from '@mui/material/Button';
 import { useSnackbar } from 'notistack';
+import { ExpensesContext } from '../../contexts/expenses';
 
 export default function InvoiceEntries() {
   useProtectPage();
 
   const { enqueueSnackbar } = useSnackbar();
-  const { invoices, handleUpdateInvoice, handleDeleteInvoice } = useInvoices();
+  const { invoices, handleDeleteInvoice } = useContext(ExpensesContext);
 
   const [editInvoiceModal, setEditInvoiceModal] = useState<{
     open: boolean,
@@ -103,7 +103,6 @@ export default function InvoiceEntries() {
           invoice={editInvoiceModal.invoice}
           open={editInvoiceModal.open}
           handleClose={() => setEditInvoiceModal({ ...editInvoiceModal, open: false })}
-          handleUpdateInvoice={handleUpdateInvoice}
         />
         <Dialog
           open={openModalDeleteInvoice.open}
