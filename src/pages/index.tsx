@@ -11,6 +11,8 @@ import { PieChart } from '../components/charts/pieChart'
 import { Stack } from '@mui/system'
 import { ExpensesOfDay } from '../components/home/expensesOfDay'
 import { LoadingHomePage } from '../components/home/loadingPage'
+import { ImCool, ImHappy, ImSmile, ImWondering, ImSad, ImAngry, ImConfused } from "react-icons/im";
+import CSS from 'csstype';
 
 export default function Home() {
   useProtectPage()
@@ -18,6 +20,28 @@ export default function Home() {
   const { monthlyExpenses, expensesIndicatedPerDay, invoices, expensesOfDay, loadingGetInvoices } = useInvoices();
 
   const revenueMonthly = 5850;
+
+  const HappyOrSad = () => {
+    const iconStyle: CSS.Properties = {
+      position: 'relative', top: '5px', fontSize: '28px'
+    }
+
+    if (revenueMonthly - monthlyExpenses > 2000) {
+      return <ImCool style={iconStyle} />
+    } else if (revenueMonthly - monthlyExpenses > 1500) {
+      return <ImHappy style={iconStyle} />
+    } else if (revenueMonthly - monthlyExpenses > 1000) {
+      return <ImSmile style={iconStyle} />
+    } else if (revenueMonthly - monthlyExpenses > 600) {
+      return <ImWondering style={iconStyle} />
+    } else if (revenueMonthly - monthlyExpenses > 300) {
+      return <ImSad style={iconStyle} />
+    } else if (revenueMonthly - monthlyExpenses <= 300) {
+      return <ImAngry style={iconStyle} />
+    } else {
+      return <ImConfused style={iconStyle} />
+    }
+  }
 
   return (
     <>
@@ -34,26 +58,31 @@ export default function Home() {
                 <Card variant='outlined' sx={{ width: '90%', mb: 4 }}>
                   <CardContent sx={{ textAlign: 'center' }}>
                     <Typography sx={{ fontSize: 20 }} color="text.primary" gutterBottom>
-                      Despesas do mês
+                      Como estamos?
                     </Typography>
-                    <Typography sx={{ fontSize: 20 }} color="red">
-                      {formatterCurrency(monthlyExpenses)}
+                    <Typography sx={{ fontSize: 30, fontWeight: 'bold' }} color={revenueMonthly - monthlyExpenses > 0 ? 'green' : 'red'}>
+                      {revenueMonthly - monthlyExpenses > 0 && '+'}
+                      {formatterCurrency(revenueMonthly - monthlyExpenses)} <HappyOrSad />
                     </Typography>
+
                     <Divider sx={{ my: 4 }} />
+
                     <Typography sx={{ fontSize: 20 }} color="text.primary" gutterBottom>
                       Receitas
                     </Typography>
                     <Typography sx={{ fontSize: 20 }} color="green">
                       {formatterCurrency(revenueMonthly)}
                     </Typography>
+
                     <Divider sx={{ my: 4 }} />
+
                     <Typography sx={{ fontSize: 20 }} color="text.primary" gutterBottom>
-                      Resultado
+                      Despesas
                     </Typography>
-                    <Typography sx={{ fontSize: 30, fontWeight: 'bold' }} color={revenueMonthly - monthlyExpenses > 0 ? 'green' : 'red'}>
-                      {revenueMonthly - monthlyExpenses > 0 && '+'}
-                      {formatterCurrency(revenueMonthly - monthlyExpenses)}
+                    <Typography sx={{ fontSize: 20 }} color="red">
+                      {formatterCurrency(monthlyExpenses)}
                     </Typography>
+
                   </CardContent>
                 </Card>
 
