@@ -5,6 +5,7 @@ import { AuthProvider } from '../hooks/auth/useAuth';
 import { MonthSelectedProvider } from '../contexts/monthSelected';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { ExpensesProvider } from '../contexts/expenses';
+import { RevenuesProvider } from '../contexts/revenues';
 
 const theme = createTheme({
   palette: {
@@ -35,9 +36,11 @@ function MyApp({ Component, pageProps }: AppProps) {
     <ThemeProvider theme={theme}>
       <SnackbarProvider maxSnack={3}>
         <MonthSelectedProvider>
-          <ExpensesProvider>
-            <Component {...pageProps} />
-          </ExpensesProvider>
+          <RevenuesProvider>
+            <ExpensesProvider>
+              <Component {...pageProps} />
+            </ExpensesProvider>
+          </RevenuesProvider>
         </MonthSelectedProvider>
       </SnackbarProvider>
     </ThemeProvider>

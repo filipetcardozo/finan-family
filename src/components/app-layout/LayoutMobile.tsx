@@ -10,12 +10,8 @@ import QueryStatsIcon from '@mui/icons-material/QueryStatsOutlined';
 import { useRouter } from "next/router";
 import { AddInvoiceModal } from "../modal-addInvoice";
 import { AppBar } from "./AppBar";
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
-import SearchIcon from '@mui/icons-material/Search';
-import MoreIcon from '@mui/icons-material/MoreVert';
 import { AppBar as AppBarMui } from '@mui/material';
+import ExposureIcon from '@mui/icons-material/Exposure';
 
 type Props = {
   children: ReactNode;
@@ -47,7 +43,7 @@ export const LayoutMobile = ({ children, tabSelected }: Props) => {
     </Box>
     <AppBarMui position="fixed" color='primary' sx={{ top: 'auto', bottom: 0 }}>
       <StyledFab  color='secondary' onClick={handleOpenModal} aria-label="add">
-        <AddIcon color='primary' />
+        <ExposureIcon color='primary' />
       </StyledFab>
       <BottomNavigation
         showLabels

@@ -14,30 +14,30 @@ import { LoadingHomePage } from '../components/home/loadingPage';
 import { ImCool, ImHappy, ImSmile, ImWondering, ImSad, ImAngry, ImConfused } from "react-icons/im";
 import CSS from 'csstype';
 import { ExpensesContext } from '../contexts/expenses';
+import { RevenuesContext } from '../contexts/revenues';
 
 export default function Home() {
   useProtectPage()
 
   const { monthlyExpenses, expensesIndicatedPerDay, invoices, expensesOfDay, loadingGetInvoices } = useContext(ExpensesContext);
-
-  const revenueMonthly = 5850;
+  const { loadingGetRevenues, monthlyRevenues } = useContext(RevenuesContext);
 
   const HappyOrSad = () => {
     const iconStyle: CSS.Properties = {
       position: 'relative', top: '5px', fontSize: '28px'
     }
 
-    if (revenueMonthly - monthlyExpenses > 2000) {
+    if (monthlyRevenues - monthlyExpenses > 2000) {
       return <ImCool style={iconStyle} />
-    } else if (revenueMonthly - monthlyExpenses > 1500) {
+    } else if (monthlyRevenues - monthlyExpenses > 1500) {
       return <ImHappy style={iconStyle} />
-    } else if (revenueMonthly - monthlyExpenses > 1000) {
+    } else if (monthlyRevenues - monthlyExpenses > 1000) {
       return <ImSmile style={iconStyle} />
-    } else if (revenueMonthly - monthlyExpenses > 600) {
+    } else if (monthlyRevenues - monthlyExpenses > 600) {
       return <ImWondering style={iconStyle} />
-    } else if (revenueMonthly - monthlyExpenses > 300) {
+    } else if (monthlyRevenues - monthlyExpenses > 300) {
       return <ImSad style={iconStyle} />
-    } else if (revenueMonthly - monthlyExpenses <= 300) {
+    } else if (monthlyRevenues - monthlyExpenses <= 300) {
       return <ImAngry style={iconStyle} />
     } else {
       return <ImConfused style={iconStyle} />
@@ -53,7 +53,7 @@ export default function Home() {
       <CssBaseline />
       <LayoutMobile tabSelected='/'>
         {
-          loadingGetInvoices ? <LoadingHomePage /> :
+          loadingGetInvoices || loadingGetRevenues ? <LoadingHomePage /> :
             <Stack flexDirection='column' justifyContent='center' alignItems='center'>
               <Box sx={{ width: 1, display: 'flex', justifyContent: 'center' }}>
                 <Card variant='outlined' sx={{ width: '90%', mb: 4 }}>
@@ -61,9 +61,9 @@ export default function Home() {
                     <Typography sx={{ fontSize: 20 }} color="text.primary" gutterBottom>
                       Como estamos?
                     </Typography>
-                    <Typography sx={{ fontSize: 30, fontWeight: 'bold' }} color={revenueMonthly - monthlyExpenses > 0 ? 'green' : 'red'}>
-                      {revenueMonthly - monthlyExpenses > 0 && '+'}
-                      {formatterCurrency(revenueMonthly - monthlyExpenses)} <HappyOrSad />
+                    <Typography sx={{ fontSize: 30, fontWeight: 'bold' }} color={monthlyRevenues - monthlyExpenses > 0 ? 'green' : 'red'}>
+                      {monthlyRevenues - monthlyExpenses > 0 && '+'}
+                      {formatterCurrency(monthlyRevenues - monthlyExpenses)} <HappyOrSad />
                     </Typography>
 
                     <Divider sx={{ my: 4 }} />
@@ -72,7 +72,7 @@ export default function Home() {
                       Receitas
                     </Typography>
                     <Typography sx={{ fontSize: 20 }} color="green">
-                      {formatterCurrency(revenueMonthly)}
+                      {formatterCurrency(monthlyRevenues)}
                     </Typography>
 
                     <Divider sx={{ my: 4 }} />
@@ -94,7 +94,7 @@ export default function Home() {
                 </Typography>
                 <Typography sx={{ fontSize: 20, textAlign: 'center' }} color="primary">
                   <span style={{
-                    color: revenueMonthly - monthlyExpenses > 0 ? 'green' : 'red'
+                    color: monthlyRevenues - monthlyExpenses > 0 ? 'green' : 'red'
                   }}>
                     {formatterCurrency(expensesIndicatedPerDay)}
                   </span>
