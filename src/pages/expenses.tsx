@@ -1,25 +1,25 @@
 import React, { useState, useContext } from 'react'
 import Head from 'next/head'
-import { LayoutMobile } from '../../components/app-layout/LayoutMobile';
-import { useProtectPage } from '../../hooks/auth/useAuth';
-import { IInvoice } from '../../providers/invoices/types';
+import { LayoutMobile } from '../components/AppLayoutMobile';
+import { useProtectPage } from '../hooks/useAuth';
+import { IInvoice } from '../providers/invoices/types';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { Box } from '@mui/material';
 import dayjs from 'dayjs';
-import { formatterCurrency } from '../../utils/formatters';
+import { formatterCurrency } from '../utils/formatters';
 import IconButton from '@mui/material/IconButton';
 import BorderColorIcon from '@mui/icons-material/BorderColorOutlined';
 import Tooltip from '@mui/material/Tooltip';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import { AddInvoiceModal } from '../../components/modal-addInvoice';
+import { AddInvoiceModal } from '../components/ModalAddInvoice';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogTitle from '@mui/material/DialogTitle';
 import Button from '@mui/material/Button';
 import { useSnackbar } from 'notistack';
-import { ExpensesContext } from '../../contexts/expenses';
+import { ExpensesContext } from '../contexts/Expenses';
 
-export default function InvoiceEntries() {
+export default function Expenses() {
   useProtectPage();
 
   const { enqueueSnackbar } = useSnackbar();
@@ -87,7 +87,7 @@ export default function InvoiceEntries() {
         <title>Lançamentos</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <LayoutMobile tabSelected='/invoice-entries'>
+      <LayoutMobile tabSelected='/expenses'>
         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
           <Box sx={{ height: 600, width: '90%', maxWidth: 600, mt: 3 }}>
             <DataGrid

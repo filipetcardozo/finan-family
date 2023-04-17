@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import { SignInType, useAuth, useProtectPage } from '../../hooks/auth/useAuth';
+import { SignInType, useAuth, useProtectPage } from '../hooks/useAuth';
 import { TextField, Button } from '@mui/material';
 import { useFormik } from 'formik';
 

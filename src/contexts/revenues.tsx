@@ -3,8 +3,8 @@ import React, { Context } from 'react';
 import { IRevenue } from '../providers/revenues/types';
 import { useMemo, useState, useEffect, useContext } from 'react';
 import { deleteRevenue, getUserRevenues } from '../providers/revenues/services';
-import { MonthSelectedContext } from '../contexts/monthSelected';
-import { useAuth } from '../hooks/auth/useAuth';
+import { MonthSelectedContext } from './MonthSelected';
+import { useAuth } from '../hooks/useAuth';
 
 interface ContextType {
   loadingGetRevenues: boolean;

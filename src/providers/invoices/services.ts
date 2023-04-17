@@ -1,4 +1,4 @@
-import { useAuth } from './../../hooks/auth/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 import { collection, getDocs, getDoc, addDoc, doc, updateDoc, startAfter, orderBy, DocumentSnapshot, deleteDoc } from "firebase/firestore";
 import { query, where } from "firebase/firestore";
 import { getAuth } from "firebase/auth";

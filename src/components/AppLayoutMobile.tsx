@@ -8,14 +8,14 @@ import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 import AssignmentIcon from '@mui/icons-material/AssignmentOutlined';
 import QueryStatsIcon from '@mui/icons-material/QueryStatsOutlined';
 import { useRouter } from "next/router";
-import { AddInvoiceModal } from "../modal-addInvoice";
-import { AppBar } from "./AppBar";
+import { AddInvoiceModal } from "./ModalAddInvoice";
+import { AppBar } from "./AppTopBar";
 import { AppBar as AppBarMui } from '@mui/material';
 import ExposureIcon from '@mui/icons-material/Exposure';
 
 type Props = {
   children: ReactNode;
-  tabSelected: '/' | '/invoice-entries' | undefined;
+  tabSelected: '/' | '/expenses' | undefined;
 }
 
 export const LayoutMobile = ({ children, tabSelected }: Props) => {
@@ -25,7 +25,7 @@ export const LayoutMobile = ({ children, tabSelected }: Props) => {
     switch (tabSelected) {
       case '/':
         return 0;
-      case '/invoice-entries':
+      case '/expenses':
         return 1;
       default:
         return undefined;
@@ -54,7 +54,7 @@ export const LayoutMobile = ({ children, tabSelected }: Props) => {
               router.push('/');
               break;
             case 1:
-              router.push('/invoice-entries');
+              router.push('/expenses');
               break;
           }
         }}

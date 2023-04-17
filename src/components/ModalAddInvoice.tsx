@@ -10,25 +10,25 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import { useFormik } from 'formik';
-import { IInvoice } from '../../providers/invoices/types';
+import { IInvoice } from '../providers/invoices/types';
 import dayjs, { Dayjs } from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import 'dayjs/locale/pt-br';
-import { useAuth } from '../../hooks/auth/useAuth';
-import { putInvoice, updateInvoice } from '../../providers/invoices/services';
+import { useAuth } from '../hooks/useAuth';
+import { putInvoice, updateInvoice } from '../providers/invoices/services';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { useSnackbar } from 'notistack';
-import { CurrencyInput } from '../common/currencyInput';
-import { ExpensesContext } from '../../contexts/expenses';
+import { CurrencyInput } from './InputCurrency';
+import { ExpensesContext } from '../contexts/Expenses';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import { IRevenue } from '../../providers/revenues/types';
-import { putRevenue, updateRevenue } from '../../providers/revenues/services';
-import { RevenuesContext } from '../../contexts/revenues';
+import { IRevenue } from '../providers/revenues/types';
+import { putRevenue, updateRevenue } from '../providers/revenues/services';
+import { RevenuesContext } from '../contexts/Revenues';
 
 interface IProps {
   open: boolean,

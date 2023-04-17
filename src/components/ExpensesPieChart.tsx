@@ -1,8 +1,8 @@
 import { List, Stack } from '@mui/material'
 import { useMemo } from 'react'
 import { PieChart as PieChartRecharts, ResponsiveContainer, Pie, Cell, Legend } from 'recharts'
-import { IInvoice } from '../../providers/invoices/types'
-import { formatterCurrency } from '../../utils/formatters'
+import { IInvoice } from '../providers/invoices/types'
+import { formatterCurrency } from '../utils/formatters'
 import Box from '@mui/material/Box';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';

@@ -5,7 +5,7 @@ import {
     getAuth, createUserWithEmailAndPassword
 } from "firebase/auth";
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { firebaseApp } from "../../../firebaseConfig";
+import { firebaseApp } from "../../firebaseConfig";
 import { useRouter } from 'next/router'
 
 interface Auth {

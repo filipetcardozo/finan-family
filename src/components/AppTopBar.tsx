@@ -7,11 +7,11 @@ import Typography from "@mui/material/Typography";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { AppBar as AppBarMui } from '@mui/material';
-import { MonthSelectedContext } from "../../contexts/monthSelected";
+import { MonthSelectedContext } from "../contexts/MonthSelected";
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import LogoutIcon from '@mui/icons-material/Logout';
-import { useAuth } from "../../hooks/auth/useAuth";
+import { useAuth } from "../hooks/useAuth";
 
 export const AppBar: React.FC = () => {
     const { dateToAnalyze, handleNextMonth, handlePreviousMonth } = React.useContext(MonthSelectedContext);
