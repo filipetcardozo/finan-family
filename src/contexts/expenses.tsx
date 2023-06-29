@@ -3,9 +3,9 @@ import React, { Context } from 'react';
 import { IInvoice } from '../providers/invoices/types';
 import { useMemo, useState, useEffect, useContext } from 'react';
 import { deleteInvoice, getUserInvoices } from '../providers/invoices/services';
-import { MonthSelectedContext } from './MonthSelected';
+import { MonthSelectedContext } from './monthSelected';
 import { useAuth } from '../hooks/useAuth';
-import { RevenuesContext } from './Revenues';
+import { RevenuesContext } from './revenues';
 
 interface ContextType {
   loadingGetInvoices: boolean;

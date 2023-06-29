@@ -3,7 +3,7 @@ import React, { Context } from 'react';
 import { IRevenue } from '../providers/revenues/types';
 import { useMemo, useState, useEffect, useContext } from 'react';
 import { deleteRevenue, getUserRevenues } from '../providers/revenues/services';
-import { MonthSelectedContext } from './MonthSelected';
+import { MonthSelectedContext } from './monthSelected';
 import { useAuth } from '../hooks/useAuth';
 
 interface ContextType {

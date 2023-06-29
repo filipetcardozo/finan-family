@@ -2,10 +2,10 @@ import type { AppProps } from 'next/app'
 import React from 'react'
 import { SnackbarProvider } from 'notistack';
 import { AuthProvider } from '../hooks/useAuth';
-import { MonthSelectedProvider } from '../contexts/MonthSelected';
+import { MonthSelectedProvider } from '../contexts/monthSelected';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { ExpensesProvider } from '../contexts/Expenses';
-import { RevenuesProvider } from '../contexts/Revenues';
+import { ExpensesProvider } from '../contexts/expenses';
+import { RevenuesProvider } from '../contexts/revenues';
 
 const theme = createTheme({
   palette: {

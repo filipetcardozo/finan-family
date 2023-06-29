@@ -17,7 +17,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogTitle from '@mui/material/DialogTitle';
 import Button from '@mui/material/Button';
 import { useSnackbar } from 'notistack';
-import { ExpensesContext } from '../contexts/Expenses';
+import { ExpensesContext } from '../contexts/expenses';
 
 export default function Expenses() {
   useProtectPage();

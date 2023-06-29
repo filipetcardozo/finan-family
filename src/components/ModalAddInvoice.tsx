@@ -21,14 +21,15 @@ import { putInvoice, updateInvoice } from '../providers/invoices/services';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { useSnackbar } from 'notistack';
 import { CurrencyInput } from './InputCurrency';
-import { ExpensesContext } from '../contexts/Expenses';
+import { ExpensesContext } from '../contexts/expenses';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import { IRevenue } from '../providers/revenues/types';
 import { putRevenue, updateRevenue } from '../providers/revenues/services';
-import { RevenuesContext } from '../contexts/Revenues';
+import { RevenuesContext } from '../contexts/revenues';
+import ListSubheader from '@mui/material/ListSubheader';
 
 interface IProps {
   open: boolean,
@@ -221,23 +222,37 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
                 variant='outlined' size='small' type='text'
                 autoComplete='off' margin='dense'
               >
-                <MenuItem value='Alimentação'>Alimentação</MenuItem>
-                <MenuItem value='Contas'>Contas</MenuItem>
-                <MenuItem value='Combustível'>Combustível</MenuItem>
-                <MenuItem value='Transporte'>Transporte</MenuItem>
+                <ListSubheader><Typography variant='h6' textAlign='center'>
+                  Alimentação & Entretenimento
+                </Typography></ListSubheader>
+                <MenuItem value='Supermercado'>Supermercado</MenuItem>
+                <MenuItem value='Delivery'>Delivery</MenuItem>
                 <MenuItem value='Padaria'>Padaria</MenuItem>
-                <MenuItem value='Casa'>Casa</MenuItem>
-                <MenuItem value='Entretenimento'>Entretenimento</MenuItem>
                 <MenuItem value='Restaurante'>Restaurante</MenuItem>
-                <MenuItem value='Financiamento'>Financiamento</MenuItem>
-                <MenuItem value='Roupas'>Roupas</MenuItem>
+                <MenuItem value='Distribuidora'>Distribuidora</MenuItem>
+                <MenuItem value='Atividades de Lazer'>Atividades de Lazer (Entretenimento)</MenuItem>
+
+                <ListSubheader><Typography variant='h6' textAlign='center'>
+                  Despesas de Veículo
+                </Typography></ListSubheader>
+                <MenuItem value='Combustível'>Combustível</MenuItem>
+                <MenuItem value='Serviço de Transporte'>Serviço de Transporte (Uber, Taxi)</MenuItem>
+                <MenuItem value='Manutenção do Veículo'>Manutenção do Veículo (Revisões e Reparos)</MenuItem>
+
+                <ListSubheader><Typography variant='h6' textAlign='center'>
+                  Despesas Comuns e Recorrentes
+                </Typography></ListSubheader>
+                <MenuItem value='Cuidados Pessoais'>Cuidados Pessoais (Estética)</MenuItem>
                 <MenuItem value='Pets'>Pets</MenuItem>
-                <MenuItem value='Manutenção carro'>Manutenção carro</MenuItem>
-                <MenuItem value='Faculdade'>Faculdade</MenuItem>
-                <MenuItem value='Telefone'>Telefone</MenuItem>
-                <MenuItem value='Saúde'>Saúde</MenuItem>
-                <MenuItem value='Estética'>Estética</MenuItem>
-                <MenuItem value='Esportes'>Esportes</MenuItem>
+                <MenuItem value='Despesas Fixas'>Despesas Fixas (Aluguel, Contas)</MenuItem>
+                <MenuItem value='Cartão de Crédito'>Pagamentos do Cartão de Crédito</MenuItem>
+                <MenuItem value='Móveis e Eletrodomésticos'>Móveis e Eletrodomésticos</MenuItem>
+                <MenuItem value='Financiamento'>Financiamento</MenuItem>
+                <MenuItem value='Vestuário'>Vestuário (Roupas e Acessórios)</MenuItem>
+                <MenuItem value='Educação'>Educação (Faculdade, Cursos)</MenuItem>
+                <MenuItem value='Telecomunicações'>Telecomunicações (Telefone, Internet)</MenuItem>
+                <MenuItem value='Saúde'>Saúde (Medicamentos, Consultas)</MenuItem>
+                <MenuItem value='Atividades Esportivas'>Atividades Esportivas (Academia, Equipamentos)</MenuItem>
               </Select>
             </FormControl>
             <CurrencyInput nameOfKeyValue='value' form={formExpense} />

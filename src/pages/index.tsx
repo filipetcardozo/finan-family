@@ -13,8 +13,8 @@ import { ExpensesOfDay } from '../components/ExpensesOfDay';
 import { LoadingHomePage } from '../components/SkeletonLoadingHomePage';
 import { ImCool, ImHappy, ImSmile, ImWondering, ImSad, ImAngry, ImConfused } from "react-icons/im";
 import CSS from 'csstype';
-import { ExpensesContext } from '../contexts/Expenses';
-import { RevenuesContext } from '../contexts/Revenues';
+import { ExpensesContext } from '../contexts/expenses';
+import { RevenuesContext } from '../contexts/revenues';
 
 export default function Home() {
   useProtectPage()
