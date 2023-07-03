@@ -243,6 +243,8 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
                   Despesas Comuns e Recorrentes
                 </Typography></ListSubheader>
                 <MenuItem value='Cuidados Pessoais'>Cuidados Pessoais (Estética)</MenuItem>
+                <MenuItem value='Assinaturas Digitais'>Assinaturas Digitais</MenuItem>
+                <MenuItem value='Streaming de Vídeo'>Streaming de Vídeo</MenuItem>
                 <MenuItem value='Pets'>Pets</MenuItem>
                 <MenuItem value='Despesas Fixas'>Despesas Fixas (Aluguel, Contas)</MenuItem>
                 <MenuItem value='Cartão de Crédito'>Pagamentos do Cartão de Crédito</MenuItem>
