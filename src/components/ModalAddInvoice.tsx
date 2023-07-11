@@ -236,25 +236,56 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
                   Despesas de Veículo
                 </Typography></ListSubheader>
                 <MenuItem value='Combustível'>Combustível</MenuItem>
-                <MenuItem value='Serviço de Transporte'>Serviço de Transporte (Uber, Taxi)</MenuItem>
+                <MenuItem value='Lavagem automotiva'>Lavagem automativo</MenuItem>
                 <MenuItem value='Manutenção do Veículo'>Manutenção do Veículo (Revisões e Reparos)</MenuItem>
+                <MenuItem value='Compra de peças para o veículo'>Compra de peças para o veículo</MenuItem>
+                <MenuItem value='Serviço de Transporte'>Serviço de Transporte (Uber, Taxi)</MenuItem>
 
                 <ListSubheader><Typography variant='h6' textAlign='center'>
-                  Despesas Comuns e Recorrentes
+                  Despesas Comuns
                 </Typography></ListSubheader>
                 <MenuItem value='Cuidados Pessoais'>Cuidados Pessoais (Estética)</MenuItem>
+                <MenuItem value='Acessórios Pessoais'>Acessórios Pessoais (Jóias, Óculos)</MenuItem>
+                <MenuItem value='Pets'>Pets</MenuItem>
+                <MenuItem value='Vestuário'>Vestuário (Roupas e Acessórios)</MenuItem>
+                <MenuItem value='Saúde'>Saúde (Medicamentos, Consultas)</MenuItem>
+
+                <ListSubheader><Typography variant='h6' textAlign='center'>
+                  Tecnologia & Edecução
+                </Typography></ListSubheader>
                 <MenuItem value='Assinaturas Digitais'>Assinaturas Digitais</MenuItem>
                 <MenuItem value='Streaming de Vídeo'>Streaming de Vídeo</MenuItem>
-                <MenuItem value='Pets'>Pets</MenuItem>
-                <MenuItem value='Despesas Fixas'>Despesas Fixas (Aluguel, Contas)</MenuItem>
-                <MenuItem value='Cartão de Crédito'>Pagamentos do Cartão de Crédito</MenuItem>
-                <MenuItem value='Móveis e Eletrodomésticos'>Móveis e Eletrodomésticos</MenuItem>
-                <MenuItem value='Financiamento'>Financiamento</MenuItem>
-                <MenuItem value='Vestuário'>Vestuário (Roupas e Acessórios)</MenuItem>
                 <MenuItem value='Educação'>Educação (Faculdade, Cursos)</MenuItem>
                 <MenuItem value='Telecomunicações'>Telecomunicações (Telefone, Internet)</MenuItem>
-                <MenuItem value='Saúde'>Saúde (Medicamentos, Consultas)</MenuItem>
+                <MenuItem value='Eletrônicos'>Eletrônicos (Celular, Relógio)</MenuItem>
+
+                <ListSubheader><Typography variant='h6' textAlign='center'>Casa</Typography></ListSubheader>
+                <MenuItem value='Aluguel'>Aluguel</MenuItem>
+                <MenuItem value='Contas'>Contas (Água, Luz, Gás)</MenuItem>
+                <MenuItem value='Reparos e Manutenção'>Reparos e Manutenção</MenuItem>
+                <MenuItem value='Móveis e Decoração'>Móveis e Decoração</MenuItem>
+
+                <ListSubheader><Typography variant='h6' textAlign='center'>Lazer</Typography></ListSubheader>
+                <MenuItem value='Viagens'>Viagens</MenuItem>
+                <MenuItem value='Eventos'>Eventos</MenuItem>
                 <MenuItem value='Atividades Esportivas'>Atividades Esportivas (Academia, Equipamentos)</MenuItem>
+                <MenuItem value='Atividades Recreativas'>Atividades Recreativas</MenuItem>
+                <MenuItem value='Hobbies'>Hobbies</MenuItem>
+
+                <ListSubheader><Typography variant='h6' textAlign='center'>
+                  Despesas com outras pessoas
+                </Typography></ListSubheader>
+                <MenuItem value='Presentes'>Presentes</MenuItem>
+                <MenuItem value='Transferência bancária'>Transferência bancária</MenuItem>
+                <MenuItem value='Empréstimos'>Empréstimos</MenuItem>
+
+                <ListSubheader><Typography variant='h6' textAlign='center'>
+                  Outras opções
+                </Typography></ListSubheader>
+                <MenuItem value='Financiamento'>Financiamento</MenuItem>
+                <MenuItem value='Cartão de Crédito'>Pagamentos do Cartão de Crédito</MenuItem>
+                <MenuItem value='Materiais e equipamentos genéricos'>Materiais e equipamentos genéricos</MenuItem>
+                <MenuItem value='Outros'>Outros</MenuItem>
               </Select>
             </FormControl>
             <CurrencyInput nameOfKeyValue='value' form={formExpense} />
