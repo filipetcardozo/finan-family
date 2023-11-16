@@ -45,25 +45,30 @@ export default function Expenses() {
   const columns: GridColDef[] = [
     {
       field: 'invoiceCategory',
-      headerName: 'Categoria'
+      headerName: 'Categoria',
+      flex: 1,
     },
     {
       field: 'value',
       headerName: 'Valor',
-      renderCell: (({ value }) => formatterCurrency(value))
+      renderCell: (({ value }) => formatterCurrency(value)),
+      minWidth: 40,
     },
     {
       field: 'description',
-      headerName: 'Descrição'
+      headerName: 'Descrição',
+      flex: 1,
     },
     {
       field: 'addDate',
       headerName: 'Data',
-      renderCell: (({ value }) => dayjs(value).format('DD/MM/YYYY'))
+      minWidth: 50,
+      renderCell: (({ value }) => dayjs(value).format('DD/MM/YYYY')),
     },
     {
       field: 'id',
       headerName: 'Ações',
+      minWidth: 50,
       renderCell: (({ value, row }) => {
         return <>
           <IconButton color='primary' onClick={() => setEditInvoiceModal({ invoice: row, open: true })}>
@@ -88,15 +93,17 @@ export default function Expenses() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <LayoutMobile tabSelected='/expenses'>
-        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-          <Box sx={{ height: 600, width: '90%', maxWidth: 600, mt: 3 }}>
-            <DataGrid
-              rows={invoices}
-              columns={columns}
-              pageSize={8}
-              rowsPerPageOptions={[8]}
-              disableSelectionOnClick
-            />
+        <Box sx={{ justifyContent: 'center', display: 'flex', width: '100%' }}>
+          <Box sx={{ overflowX: 'auto' }}>
+            <Box sx={{ height: 600, width: 620 }}>
+              <DataGrid
+                rows={invoices}
+                columns={columns}
+                pageSize={20}
+                rowsPerPageOptions={[20]}
+                disableSelectionOnClick
+              />
+            </Box>
           </Box>
         </Box>
         <AddInvoiceModal

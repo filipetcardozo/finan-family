@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { CssBaseline, Divider, Typography } from '@mui/material';
+import { Container, CssBaseline, Divider, Typography } from '@mui/material';
 import Head from 'next/head';
 import { LayoutMobile } from '../components/AppLayoutMobile';
 import { useProtectPage } from '../hooks/useAuth';
@@ -52,74 +52,67 @@ export default function Home() {
       </Head>
       <CssBaseline />
       <LayoutMobile tabSelected='/'>
-        {
-          loadingGetInvoices || loadingGetRevenues ? <LoadingHomePage /> :
-            <Stack flexDirection='column' justifyContent='center' alignItems='center'>
-              <Box sx={{ width: 1, display: 'flex', justifyContent: 'center' }}>
-                <Card variant='outlined' sx={{ width: '90%', mb: 4 }}>
-                  <CardContent sx={{ textAlign: 'center' }}>
-                    <Typography sx={{ fontSize: 20 }} color="text.primary" gutterBottom>
-                      Como estamos?
-                    </Typography>
-                    <Typography sx={{ fontSize: 30, fontWeight: 'bold' }} color={monthlyRevenues - monthlyExpenses > 0 ? 'green' : 'red'}>
-                      {monthlyRevenues - monthlyExpenses > 0 && '+'}
-                      {formatterCurrency(monthlyRevenues - monthlyExpenses)} <HappyOrSad />
-                    </Typography>
+        <Container maxWidth='sm'>
+          {
+            loadingGetInvoices || loadingGetRevenues ? <LoadingHomePage /> :
+              <Stack flexDirection='column' justifyContent='center' alignItems='center'>
+                <Box sx={{ width: 1, display: 'flex', justifyContent: 'center' }}>
+                  <Card variant='outlined' sx={{ width: '90%', mb: 4 }}>
+                    <CardContent sx={{ textAlign: 'center' }}>
+                      <Typography sx={{ fontSize: 20 }} color="text.primary" gutterBottom>
+                        Como estamos?
+                      </Typography>
+                      <Typography sx={{ fontSize: 30, fontWeight: 'bold' }} color={monthlyRevenues - monthlyExpenses > 0 ? 'green' : 'red'}>
+                        {monthlyRevenues - monthlyExpenses > 0 && '+'}
+                        {formatterCurrency(monthlyRevenues - monthlyExpenses)} <HappyOrSad />
+                      </Typography>
 
-                    <Divider sx={{ my: 4 }} />
+                      <Divider sx={{ my: 4 }} />
 
-                    <Typography sx={{ fontSize: 20 }} color="text.primary" gutterBottom>
-                      Receitas
+                      <Typography sx={{ fontSize: 20 }} color="text.primary" gutterBottom>
+                        Receitas
+                      </Typography>
+                      <Typography sx={{ fontSize: 20 }} color="green">
+                        {formatterCurrency(monthlyRevenues)}
+                      </Typography>
+
+                      <Divider sx={{ my: 4 }} />
+
+                      <Typography sx={{ fontSize: 20 }} color="text.primary" gutterBottom>
+                        Despesas
+                      </Typography>
+                      <Typography sx={{ fontSize: 20 }} color="red">
+                        {formatterCurrency(monthlyExpenses)}
+                      </Typography>
+
+                    </CardContent>
+                  </Card>
+                </Box>
+
+                {
+                  expensesOfDay.length > 0 && <>
+                    <Box sx={{ width: 1, display: 'flex', justifyContent: 'center' }}>
+                      <Divider sx={{ my: 4, width: '90%' }} />
+                    </Box>
+                    <Typography sx={{ fontSize: 18 }} color="text.primary" gutterBottom>
+                      Despesas do dia
                     </Typography>
-                    <Typography sx={{ fontSize: 20 }} color="green">
-                      {formatterCurrency(monthlyRevenues)}
-                    </Typography>
+                    <ExpensesOfDay expensesOfDay={expensesOfDay} />
+                  </>
+                }
 
-                    <Divider sx={{ my: 4 }} />
-
-                    <Typography sx={{ fontSize: 20 }} color="text.primary" gutterBottom>
-                      Despesas
-                    </Typography>
-                    <Typography sx={{ fontSize: 20 }} color="red">
-                      {formatterCurrency(monthlyExpenses)}
-                    </Typography>
-
-                  </CardContent>
-                </Card>
-
-              </Box>
-              <Box>
-                <Typography sx={{ fontSize: 18 }} color="primary">
-                  Despesa diária indicada <span style={{ fontSize: 13 }}>(até o dia 25)</span>
+                <Box sx={{ width: 1, display: 'flex', justifyContent: 'center' }}>
+                  <Divider sx={{ my: 4, width: '90%' }} />
+                </Box>
+                <Typography sx={{ fontSize: 18 }} color="text.primary" gutterBottom>
+                  Despesas por categoria
                 </Typography>
-                <Typography sx={{ fontSize: 20, textAlign: 'center' }} color="primary">
-                  <span style={{
-                    color: monthlyRevenues - monthlyExpenses > 0 ? 'green' : 'red'
-                  }}>
-                    {formatterCurrency(expensesIndicatedPerDay)}
-                  </span>
-                </Typography>
-              </Box>
-
-              <Box sx={{ width: 1, display: 'flex', justifyContent: 'center' }}>
-                <Divider sx={{ my: 4, width: '90%' }} />
-              </Box>
-              <Typography sx={{ fontSize: 18 }} color="text.primary" gutterBottom>
-                Despesas do dia
-              </Typography>
-              <ExpensesOfDay expensesOfDay={expensesOfDay} />
-
-              <Box sx={{ width: 1, display: 'flex', justifyContent: 'center' }}>
-                <Divider sx={{ my: 4, width: '90%' }} />
-              </Box>
-              <Typography sx={{ fontSize: 18 }} color="text.primary" gutterBottom>
-                Despesas por categoria
-              </Typography>
-              <Box sx={{ width: 1, maxWidth: '400px', height: '200px', display: 'flex', justifyContent: 'center' }}>
-                <PieChart expenses={invoices} />
-              </Box>
-            </Stack>
-        }
+                <Box sx={{ width: 1, maxWidth: '400px', height: '200px', display: 'flex', justifyContent: 'center' }}>
+                  <PieChart expenses={invoices} />
+                </Box>
+              </Stack>
+          }
+        </Container>
       </LayoutMobile>
     </>
   )
