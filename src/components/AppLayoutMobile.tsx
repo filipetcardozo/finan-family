@@ -1,21 +1,21 @@
 import { ReactNode, useState, useMemo } from "react"
 import { Fab } from '@mui/material'
 import { styled } from '@mui/material/styles';
-import AddIcon from '@mui/icons-material/Add';
 import Box from "@mui/material/Box";
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
-import AssignmentIcon from '@mui/icons-material/AssignmentOutlined';
 import QueryStatsIcon from '@mui/icons-material/QueryStatsOutlined';
 import { useRouter } from "next/router";
 import { AddInvoiceModal } from "./ModalAddInvoice";
 import { AppBar } from "./AppTopBar";
 import { AppBar as AppBarMui } from '@mui/material';
 import ExposureIcon from '@mui/icons-material/Exposure';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 
 type Props = {
   children: ReactNode;
-  tabSelected: '/' | '/expenses' | undefined;
+  tabSelected: '/' | '/expenses' | '/revenues' | undefined;
 }
 
 export const LayoutMobile = ({ children, tabSelected }: Props) => {
@@ -26,7 +26,9 @@ export const LayoutMobile = ({ children, tabSelected }: Props) => {
       case '/':
         return 0;
       case '/expenses':
-        return 1;
+        return 2;
+      case '/revenues':
+        return 3;
       default:
         return undefined;
     }
@@ -42,7 +44,7 @@ export const LayoutMobile = ({ children, tabSelected }: Props) => {
       {children}
     </Box>
     <AppBarMui position="fixed" color='primary' sx={{ top: 'auto', bottom: 0 }}>
-      <StyledFab  color='secondary' onClick={handleOpenModal} aria-label="add">
+      <StyledFab color='secondary' onClick={handleOpenModal} aria-label="add">
         <ExposureIcon color='primary' />
       </StyledFab>
       <BottomNavigation
@@ -53,15 +55,19 @@ export const LayoutMobile = ({ children, tabSelected }: Props) => {
             case 0:
               router.push('/');
               break;
-            case 1:
+            case 2:
               router.push('/expenses');
+              break;
+            case 3:
+              router.push('/revenues');
               break;
           }
         }}
       >
         <BottomNavigationAction label="Home" icon={<QueryStatsIcon />} />
-        <BottomNavigationAction label="Despesas" icon={<AssignmentIcon />} />
-        {/* <BottomNavigationAction label="Receitas" icon={<AssignmentIcon />} /> */}
+        <BottomNavigationAction disabled label="" />
+        <BottomNavigationAction label="Despesas" icon={<TrendingDownIcon color='error' />} />
+        <BottomNavigationAction label="Receitas" icon={<TrendingUpIcon color='success' />} />
       </BottomNavigation>
     </AppBarMui>
     <AddInvoiceModal open={openAddInvoiceModal} handleClose={handleCloseModal} />
@@ -73,6 +79,6 @@ const StyledFab = styled(Fab)({
   zIndex: 1,
   top: -30,
   left: 0,
-  right: 0,
+  right: 100,
   margin: '0 auto',
 });

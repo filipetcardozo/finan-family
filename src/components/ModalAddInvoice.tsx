@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
@@ -74,7 +74,7 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
   React.useEffect(() => {
     if (invoice && invoice.id) {
       formExpense.setFieldValue('addDate', invoice.addDate);
-      formExpense.setFieldValue('addDateFilter', invoice.addDateFormatted);
+      formExpense.setFieldValue('addDateFormatted', invoice.addDateFormatted);
       formExpense.setFieldValue('description', invoice.description);
       formExpense.setFieldValue('invoiceCategory', invoice.invoiceCategory);
       formExpense.setFieldValue('value', invoice.value);
@@ -85,13 +85,13 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
 
   React.useEffect(() => {
     if (revenue && revenue.id) {
-      formExpense.setFieldValue('addDate', revenue.addDate);
-      formExpense.setFieldValue('addDateFilter', revenue.addDateFormatted);
-      formExpense.setFieldValue('description', revenue.description);
-      formExpense.setFieldValue('revenueCategory', revenue.revenueCategory);
-      formExpense.setFieldValue('value', revenue.value);
-      formExpense.setFieldValue('userId', revenue.userId);
-      formExpense.setFieldValue('id', revenue.id);
+      formRevenue.setFieldValue('addDate', revenue.addDate);
+      formRevenue.setFieldValue('addDateFormatted', revenue.addDateFormatted);
+      formRevenue.setFieldValue('description', revenue.description);
+      formRevenue.setFieldValue('revenueCategory', revenue.revenueCategory);
+      formRevenue.setFieldValue('value', revenue.value);
+      formRevenue.setFieldValue('userId', revenue.userId);
+      formRevenue.setFieldValue('id', revenue.id);
     }
   }, [revenue]);
 
@@ -144,7 +144,7 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
     onSubmit: async values => {
       setLoadingButton(true);
 
-      if (invoice && invoice.id) {
+      if (revenue && revenue.id) {
         await updateRevenue({ ...formRevenue.values })
           .then(() => {
             enqueueSnackbar('Receita alterada', { autoHideDuration: 2000, variant: 'success', anchorOrigin: { horizontal: 'center', vertical: 'top' } });
@@ -185,6 +185,12 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
   // Tabs
   const [value, setValue] = React.useState(0);
 
+  useEffect(() => {
+    if (revenue?.id) {
+      setValue(1);
+    }
+  }, [revenue?.id])
+
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
@@ -195,8 +201,6 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
       'aria-controls': `tabpanel-${index}`,
     };
   }
-
-
 
   return <Dialog open={open} onClose={handleClose} fullWidth >
     <div>
@@ -285,6 +289,7 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
                 <MenuItem value='Financiamento'>Financiamento</MenuItem>
                 <MenuItem value='Cartão de Crédito'>Pagamentos do Cartão de Crédito</MenuItem>
                 <MenuItem value='Materiais e equipamentos genéricos'>Materiais e equipamentos genéricos</MenuItem>
+                <MenuItem value='Investimentos'>Investimentos</MenuItem>
                 <MenuItem value='Outros'>Outros</MenuItem>
               </Select>
             </FormControl>
