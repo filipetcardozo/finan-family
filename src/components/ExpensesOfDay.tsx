@@ -5,9 +5,6 @@ import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 import Avatar from '@mui/material/Avatar';
-import ImageIcon from '@mui/icons-material/Image';
-import WorkIcon from '@mui/icons-material/Work';
-import BeachAccessIcon from '@mui/icons-material/BeachAccess';
 import { formatterCurrency } from '../utils/formatters';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { Box, Typography } from '@mui/material';
@@ -48,6 +45,4 @@ export const ExpensesOfDay: React.FC<props> = ({ expensesOfDay }) => {
       Ainda não foi inserida nenhuma despesa.
     </Typography>
   }
-
-  
 }

@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { Container, CssBaseline, Divider, Typography } from '@mui/material';
 import Head from 'next/head';
 import { LayoutMobile } from '../components/AppLayoutMobile';
@@ -19,7 +19,7 @@ import { RevenuesContext } from '../contexts/revenues';
 export default function Home() {
   useProtectPage()
 
-  const { monthlyExpenses, expensesIndicatedPerDay, invoices, expensesOfDay, loadingGetInvoices } = useContext(ExpensesContext);
+  const { monthlyExpenses, invoices, expensesOfDay, loadingGetInvoices } = useContext(ExpensesContext);
   const { loadingGetRevenues, monthlyRevenues } = useContext(RevenuesContext);
 
   const HappyOrSad = () => {
@@ -43,6 +43,21 @@ export default function Home() {
       return <ImConfused style={iconStyle} />
     }
   }
+
+  const monthlyInvestments = useMemo(() => {
+    let totalInvestments = 0;
+    let asWeAre = monthlyRevenues - monthlyExpenses;
+
+    invoices.forEach(invoice => {
+      if (invoice.invoiceCategory === 'Investimentos') totalInvestments += invoice.value ?? 0;
+    });
+
+    if (asWeAre < 0) {
+      totalInvestments = totalInvestments + asWeAre;
+    }
+
+    return { netInvestments: totalInvestments, plannedInvestments: totalInvestments };
+  }, [monthlyRevenues, monthlyExpenses, invoices]);
 
   return (
     <>
@@ -85,6 +100,14 @@ export default function Home() {
                         {formatterCurrency(monthlyExpenses)}
                       </Typography>
 
+                      <Divider sx={{ my: 4 }} />
+
+                      <Typography sx={{ fontSize: 16 }} color="text.primary" gutterBottom>
+                        Investimentos
+                      </Typography>
+                      <Typography sx={{ fontSize: 16 }} color={monthlyInvestments.netInvestments <= 0 ? 'red' : 'green'}>
+                        {monthlyInvestments.netInvestments > 0 ? formatterCurrency(monthlyInvestments.netInvestments) : '-'}
+                      </Typography>
                     </CardContent>
                   </Card>
                 </Box>
