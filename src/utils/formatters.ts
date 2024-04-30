@@ -1,7 +1,7 @@
-export const formatterCurrency = (value: number) => {
-    if (value) {
-        return value.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' })
-    } else {
-        return '-';
-    }
+export const formatterCurrency = (value: any) => {
+  if (typeof value === 'number') {
+    return value.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
+  } else {
+    return '-';
+  }
 }

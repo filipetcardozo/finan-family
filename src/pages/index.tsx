@@ -15,6 +15,7 @@ import { ImCool, ImHappy, ImSmile, ImWondering, ImSad, ImAngry, ImConfused } fro
 import CSS from 'csstype';
 import { ExpensesContext } from '../contexts/expenses';
 import { RevenuesContext } from '../contexts/revenues';
+import { PulsingFeature } from '../components/PulsingFeature';
 
 export default function Home() {
   useProtectPage()
@@ -22,42 +23,59 @@ export default function Home() {
   const { monthlyExpenses, invoices, expensesOfDay, loadingGetInvoices } = useContext(ExpensesContext);
   const { loadingGetRevenues, monthlyRevenues } = useContext(RevenuesContext);
 
+  const monthlyInvestments = useMemo(() => {
+    let realInvestments = 0;
+    let plannedInvestments = 0;
+
+    invoices.forEach(invoice => {
+      if (invoice.invoiceCategory === 'Investimentos') {
+        realInvestments += invoice.value ?? 0;
+        plannedInvestments += invoice.value ?? 0;
+      }
+    });
+
+    let asWeAre = monthlyRevenues - realInvestments - monthlyExpenses;
+
+    if (plannedInvestments > 0 && asWeAre < 0) {
+      realInvestments += asWeAre
+    };
+
+    if (realInvestments < 0) realInvestments = 0;
+
+    return { realInvestments: realInvestments, plannedInvestments: plannedInvestments };
+  }, [invoices]);
+
+  const asWeAre = useMemo(() => {
+    let realAsWeAre = monthlyRevenues - monthlyExpenses;
+
+    if (realAsWeAre > 0) {
+      return realAsWeAre - monthlyInvestments.plannedInvestments;
+    } else {
+      return realAsWeAre;
+    }
+  }, [monthlyExpenses, monthlyInvestments, monthlyRevenues, invoices]);
+
   const HappyOrSad = () => {
     const iconStyle: CSS.Properties = {
       position: 'relative', top: '5px', fontSize: '28px'
     }
 
-    if (monthlyRevenues - monthlyExpenses > 2000) {
+    if (asWeAre > 2000) {
       return <ImCool style={iconStyle} />
-    } else if (monthlyRevenues - monthlyExpenses > 1500) {
+    } else if (asWeAre > 1500) {
       return <ImHappy style={iconStyle} />
-    } else if (monthlyRevenues - monthlyExpenses > 1000) {
+    } else if (asWeAre > 1000) {
       return <ImSmile style={iconStyle} />
-    } else if (monthlyRevenues - monthlyExpenses > 600) {
+    } else if (asWeAre > 600) {
       return <ImWondering style={iconStyle} />
-    } else if (monthlyRevenues - monthlyExpenses > 300) {
+    } else if (asWeAre > 300) {
       return <ImSad style={iconStyle} />
-    } else if (monthlyRevenues - monthlyExpenses <= 300) {
+    } else if (asWeAre <= 300) {
       return <ImAngry style={iconStyle} />
     } else {
       return <ImConfused style={iconStyle} />
     }
   }
-
-  const monthlyInvestments = useMemo(() => {
-    let totalInvestments = 0;
-    let asWeAre = monthlyRevenues - monthlyExpenses;
-
-    invoices.forEach(invoice => {
-      if (invoice.invoiceCategory === 'Investimentos') totalInvestments += invoice.value ?? 0;
-    });
-
-    if (asWeAre < 0) {
-      totalInvestments = totalInvestments + asWeAre;
-    }
-
-    return { netInvestments: totalInvestments, plannedInvestments: totalInvestments };
-  }, [monthlyRevenues, monthlyExpenses, invoices]);
 
   return (
     <>
@@ -77,10 +95,17 @@ export default function Home() {
                       <Typography sx={{ fontSize: 20 }} color="text.primary" gutterBottom>
                         Como estamos?
                       </Typography>
-                      <Typography sx={{ fontSize: 30, fontWeight: 'bold' }} color={monthlyRevenues - monthlyExpenses > 0 ? 'green' : 'red'}>
-                        {monthlyRevenues - monthlyExpenses > 0 && '+'}
-                        {formatterCurrency(monthlyRevenues - monthlyExpenses)} <HappyOrSad />
+                      <Typography sx={{ fontSize: 30, fontWeight: 'bold' }} color={asWeAre > 0 ? 'green' : 'red'}>
+                        {asWeAre > 0 && '+'}
+                        {formatterCurrency(asWeAre)} <HappyOrSad />
                       </Typography>
+                      {
+                        monthlyInvestments.plannedInvestments > 0 && monthlyInvestments.realInvestments < monthlyInvestments.plannedInvestments && <PulsingFeature>
+                          <Typography color='orange' fontSize={13}>
+                            ⚠️ Você está gastando do investimento! ⚠️
+                          </Typography>
+                        </PulsingFeature>
+                      }
 
                       <Divider sx={{ my: 4 }} />
 
@@ -105,9 +130,17 @@ export default function Home() {
                       <Typography sx={{ fontSize: 16 }} color="text.primary" gutterBottom>
                         Investimentos
                       </Typography>
-                      <Typography sx={{ fontSize: 16 }} color={monthlyInvestments.netInvestments <= 0 ? 'red' : 'green'}>
-                        {monthlyInvestments.netInvestments > 0 ? formatterCurrency(monthlyInvestments.netInvestments) : '-'}
+                      <Typography sx={{ fontSize: 16, fontWeight: 'bold' }} color='green'>
+                        {formatterCurrency(monthlyInvestments.realInvestments)}
                       </Typography>
+                      {
+                        monthlyInvestments.plannedInvestments !== monthlyInvestments.realInvestments && <Typography
+                          sx={{ fontSize: 14 }} color='red'
+                        >
+                          Planejado: {monthlyInvestments.plannedInvestments > 0 ? formatterCurrency(monthlyInvestments.plannedInvestments) : '-'}
+                        </Typography>
+                      }
+
                     </CardContent>
                   </Card>
                 </Box>

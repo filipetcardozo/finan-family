@@ -57,7 +57,7 @@ export const ExpensesProvider = ({ children }: any) => {
 
     if (invoices.length > 0) {
       invoices.forEach(v => {
-        if (v.value && v.addDate) totalExpenses += v.value;
+        if (v.value && v.addDate && v.invoiceCategory !== 'Investimentos') totalExpenses += v.value;
       })
     }
 
@@ -67,7 +67,7 @@ export const ExpensesProvider = ({ children }: any) => {
 
   const expensesIndicatedPerDay = useMemo(() => {
     let daysToEndMonth = 25 - new Date().getDate();
-    
+
     if (monthlyRevenues > monthlyExpenses) {
       return (monthlyRevenues - monthlyExpenses) / daysToEndMonth;
     } else {
