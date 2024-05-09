@@ -41,6 +41,7 @@
     "typescript": "*"
   },
   "devDependencies": {
+    "@types/estree": "^1.0.5",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "eslint-config-standard-with-typescript": "^34.0.0",
     "eslint-plugin-import": "^2.25.2",

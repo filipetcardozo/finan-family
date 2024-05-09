@@ -1,6 +1,18 @@
 {
   "short_name": "FinanFamily",
   "name": "FinanFamily",
+  "icons": [
+    {
+      "src": "/icons/finan-family.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icons/finan-family.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
   "start_url": "/",
   "background_color": "#FFFFFF",
   "display": "standalone",
