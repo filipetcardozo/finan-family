@@ -36,8 +36,8 @@ export const PieChart: React.FC<Props> = ({
     if (expenses) {
       let categories: string[] = [];
 
-      expenses.map(v => {
-        if (!categories.includes(v.invoiceCategory)) {
+      expenses.forEach(v => {
+        if (!categories.includes(v.invoiceCategory) && v.invoiceCategory !== "Investimentos") {
           categories.push(v.invoiceCategory);
         }
       })
