@@ -3,12 +3,12 @@
   "name": "FinanFamily",
   "icons": [
     {
-      "src": "/icons/finan-family.png",
+      "src": "/finan-family.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/icons/finan-family.png",
+      "src": "/finan-family.png",
       "type": "image/png",
       "sizes": "512x512"
     }
