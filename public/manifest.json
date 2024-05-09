@@ -1,0 +1,9 @@
+{
+  "short_name": "FinanFamily",
+  "name": "FinanFamily",
+  "start_url": "/",
+  "background_color": "#FFFFFF",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#FFFFFF"
+}

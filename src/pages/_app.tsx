@@ -1,5 +1,6 @@
 import type { AppProps } from 'next/app'
 import React from 'react'
+import Head from 'next/head';
 import { SnackbarProvider } from 'notistack';
 import { AuthProvider } from '../hooks/useAuth';
 import { MonthSelectedProvider } from '../contexts/monthSelected';
@@ -33,6 +34,10 @@ const theme = createTheme({
 
 function MyApp({ Component, pageProps }: AppProps) {
   return <AuthProvider>
+    <Head>
+      <link rel="manifest" href="/manifest.json" />
+      <meta name="theme-color" content="#ffffff" />
+    </Head>
     <ThemeProvider theme={theme}>
       <SnackbarProvider maxSnack={3}>
         <MonthSelectedProvider>
