@@ -43,7 +43,7 @@ export default function Home() {
     if (realInvestments < 0) realInvestments = 0;
 
     return { realInvestments: realInvestments, plannedInvestments: plannedInvestments };
-  }, [invoices]);
+  }, [invoices, monthlyExpenses, monthlyRevenues]);
 
   const asWeAre = useMemo(() => {
     let realAsWeAre = monthlyRevenues - monthlyExpenses;
