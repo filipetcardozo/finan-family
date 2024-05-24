@@ -30,6 +30,7 @@ import { IRevenue } from '../providers/revenues/types';
 import { putRevenue, updateRevenue } from '../providers/revenues/services';
 import { RevenuesContext } from '../contexts/revenues';
 import ListSubheader from '@mui/material/ListSubheader';
+import { Autocomplete } from '@mui/material';
 
 interface IProps {
   open: boolean,
@@ -43,6 +44,54 @@ interface TabPanelProps {
   index: number;
   value: number;
 }
+
+const expenseCategories = [
+  { label: 'Supermercado', group: 'Alimentação & Entretenimento' },
+  { label: 'Delivery', group: 'Alimentação & Entretenimento' },
+  { label: 'Padaria', group: 'Alimentação & Entretenimento' },
+  { label: 'Restaurante', group: 'Alimentação & Entretenimento' },
+  { label: 'Distribuidora', group: 'Alimentação & Entretenimento' },
+  { label: 'Atividades de Lazer', group: 'Alimentação & Entretenimento' },
+  { label: 'Combustível', group: 'Despesas de Veículo' },
+  { label: 'Lavagem automotiva', group: 'Despesas de Veículo' },
+  { label: 'Manutenção do Veículo', group: 'Despesas de Veículo' },
+  { label: 'Compra de peças para o veículo', group: 'Despesas de Veículo' },
+  { label: 'Serviço de Transporte', group: 'Despesas de Veículo' },
+  { label: 'Cuidados Pessoais', group: 'Despesas Comuns' },
+  { label: 'Acessórios Pessoais', group: 'Despesas Comuns' },
+  { label: 'Pets', group: 'Despesas Comuns' },
+  { label: 'Vestuário', group: 'Despesas Comuns' },
+  { label: 'Saúde', group: 'Despesas Comuns' },
+  { label: 'Assinaturas Digitais', group: 'Tecnologia & Educação' },
+  { label: 'Streaming de Vídeo', group: 'Tecnologia & Educação' },
+  { label: 'Educação', group: 'Tecnologia & Educação' },
+  { label: 'Telecomunicações', group: 'Tecnologia & Educação' },
+  { label: 'Eletrônicos', group: 'Tecnologia & Educação' },
+  { label: 'Aluguel', group: 'Casa' },
+  { label: 'Contas', group: 'Casa' },
+  { label: 'Reparos e Manutenção', group: 'Casa' },
+  { label: 'Móveis e Decoração', group: 'Casa' },
+  { label: 'Viagens', group: 'Lazer' },
+  { label: 'Eventos', group: 'Lazer' },
+  { label: 'Atividades Esportivas', group: 'Lazer' },
+  { label: 'Atividades Recreativas', group: 'Lazer' },
+  { label: 'Hobbies', group: 'Lazer' },
+  { label: 'Presentes', group: 'Despesas com outras pessoas' },
+  { label: 'Transferência bancária', group: 'Despesas com outras pessoas' },
+  { label: 'Empréstimos', group: 'Despesas com outras pessoas' },
+  { label: 'Financiamento', group: 'Outras opções' },
+  { label: 'Cartão de Crédito', group: 'Outras opções' },
+  { label: 'Materiais e equipamentos genéricos', group: 'Outras opções' },
+  { label: 'Investimentos', group: 'Outras opções' },
+  { label: 'Outros', group: 'Outras opções' },
+];
+
+const revenueCategories = [
+  { label: 'Salário' },
+  { label: 'Freelancer' },
+  { label: 'Empréstimos' },
+  { label: 'Outros' },
+];
 
 export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps) => {
   const { uid } = useAuth()
@@ -183,16 +232,16 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
   });
 
   // Tabs
-  const [value, setValue] = React.useState(0);
+  const [tabSelected, setTabSelected] = React.useState(0);
 
   useEffect(() => {
     if (revenue?.id) {
-      setValue(1);
+      setTabSelected(1);
     }
   }, [revenue?.id])
 
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue);
+  const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
+    setTabSelected(newValue);
   };
 
   function a11yProps(index: number) {
@@ -202,96 +251,37 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
     };
   }
 
-  return <Dialog open={open} onClose={handleClose} fullWidth >
+  return <Dialog open={open} onClose={handleClose} fullWidth>
     <div>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={value} onChange={handleChange} aria-label='tab revenue or expense' centered variant='fullWidth'>
+        <Tabs value={tabSelected} onChange={handleChangeTab} aria-label='tab revenue or expense' centered variant='fullWidth'>
           <Tab label='Despesa' {...a11yProps(0)} />
           <Tab label='Receita' {...a11yProps(1)} />
         </Tabs>
       </Box>
-      <TabPanel value={value} index={0}>
+      <TabPanel value={tabSelected} index={0}>
         <DialogTitle>
           {invoice && invoice.id ? 'Alterar despesa' : 'Inserir despesa'}
         </DialogTitle>
         <form onSubmit={formExpense.handleSubmit}>
           <DialogContent sx={{ paddingTop: 0 }}>
             <FormControl fullWidth margin='normal' size='small'>
-              <InputLabel id="invoice-category-label">Categoria da despesa</InputLabel>
-              <Select
-                label='Categoria da despesa' labelId="invoice-category-label"
-                name='invoiceCategory' id="invoiceCategory"
-                onChange={formExpense.handleChange}
-                value={formExpense.values.invoiceCategory}
-                variant='outlined' size='small' type='text'
-                autoComplete='off' margin='dense'
-              >
-                <ListSubheader><Typography variant='h6' textAlign='center'>
-                  Alimentação & Entretenimento
-                </Typography></ListSubheader>
-                <MenuItem value='Supermercado'>Supermercado</MenuItem>
-                <MenuItem value='Delivery'>Delivery</MenuItem>
-                <MenuItem value='Padaria'>Padaria</MenuItem>
-                <MenuItem value='Restaurante'>Restaurante</MenuItem>
-                <MenuItem value='Distribuidora'>Distribuidora</MenuItem>
-                <MenuItem value='Atividades de Lazer'>Atividades de Lazer (Entretenimento)</MenuItem>
-
-                <ListSubheader><Typography variant='h6' textAlign='center'>
-                  Despesas de Veículo
-                </Typography></ListSubheader>
-                <MenuItem value='Combustível'>Combustível</MenuItem>
-                <MenuItem value='Lavagem automotiva'>Lavagem automativo</MenuItem>
-                <MenuItem value='Manutenção do Veículo'>Manutenção do Veículo (Revisões e Reparos)</MenuItem>
-                <MenuItem value='Compra de peças para o veículo'>Compra de peças para o veículo</MenuItem>
-                <MenuItem value='Serviço de Transporte'>Serviço de Transporte (Uber, Taxi)</MenuItem>
-
-                <ListSubheader><Typography variant='h6' textAlign='center'>
-                  Despesas Comuns
-                </Typography></ListSubheader>
-                <MenuItem value='Cuidados Pessoais'>Cuidados Pessoais (Estética)</MenuItem>
-                <MenuItem value='Acessórios Pessoais'>Acessórios Pessoais (Jóias, Óculos)</MenuItem>
-                <MenuItem value='Pets'>Pets</MenuItem>
-                <MenuItem value='Vestuário'>Vestuário (Roupas e Acessórios)</MenuItem>
-                <MenuItem value='Saúde'>Saúde (Medicamentos, Consultas)</MenuItem>
-
-                <ListSubheader><Typography variant='h6' textAlign='center'>
-                  Tecnologia & Edecução
-                </Typography></ListSubheader>
-                <MenuItem value='Assinaturas Digitais'>Assinaturas Digitais</MenuItem>
-                <MenuItem value='Streaming de Vídeo'>Streaming de Vídeo</MenuItem>
-                <MenuItem value='Educação'>Educação (Faculdade, Cursos)</MenuItem>
-                <MenuItem value='Telecomunicações'>Telecomunicações (Telefone, Internet)</MenuItem>
-                <MenuItem value='Eletrônicos'>Eletrônicos (Celular, Relógio)</MenuItem>
-
-                <ListSubheader><Typography variant='h6' textAlign='center'>Casa</Typography></ListSubheader>
-                <MenuItem value='Aluguel'>Aluguel</MenuItem>
-                <MenuItem value='Contas'>Contas (Água, Luz, Gás)</MenuItem>
-                <MenuItem value='Reparos e Manutenção'>Reparos e Manutenção</MenuItem>
-                <MenuItem value='Móveis e Decoração'>Móveis e Decoração</MenuItem>
-
-                <ListSubheader><Typography variant='h6' textAlign='center'>Lazer</Typography></ListSubheader>
-                <MenuItem value='Viagens'>Viagens</MenuItem>
-                <MenuItem value='Eventos'>Eventos</MenuItem>
-                <MenuItem value='Atividades Esportivas'>Atividades Esportivas (Academia, Equipamentos)</MenuItem>
-                <MenuItem value='Atividades Recreativas'>Atividades Recreativas</MenuItem>
-                <MenuItem value='Hobbies'>Hobbies</MenuItem>
-
-                <ListSubheader><Typography variant='h6' textAlign='center'>
-                  Despesas com outras pessoas
-                </Typography></ListSubheader>
-                <MenuItem value='Presentes'>Presentes</MenuItem>
-                <MenuItem value='Transferência bancária'>Transferência bancária</MenuItem>
-                <MenuItem value='Empréstimos'>Empréstimos</MenuItem>
-
-                <ListSubheader><Typography variant='h6' textAlign='center'>
-                  Outras opções
-                </Typography></ListSubheader>
-                <MenuItem value='Financiamento'>Financiamento</MenuItem>
-                <MenuItem value='Cartão de Crédito'>Pagamentos do Cartão de Crédito</MenuItem>
-                <MenuItem value='Materiais e equipamentos genéricos'>Materiais e equipamentos genéricos</MenuItem>
-                <MenuItem value='Investimentos'>Investimentos</MenuItem>
-                <MenuItem value='Outros'>Outros</MenuItem>
-              </Select>
+              <Autocomplete
+                options={expenseCategories}
+                getOptionLabel={(option) => option.label}
+                groupBy={(option) => option.group}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Categoria da despesa"
+                    variant="outlined"
+                    size="small"
+                    margin="dense"
+                  />
+                )}
+                onChange={(event, value) => formExpense.setFieldValue('invoiceCategory', value ? value.label : '')}
+                value={expenseCategories.find(option => option.label === formExpense.values.invoiceCategory) || null}
+              />
             </FormControl>
             <CurrencyInput nameOfKeyValue='value' form={formExpense} />
             <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='pt-BR'>
@@ -333,27 +323,28 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
           </DialogActions>
         </form>
       </TabPanel>
-      <TabPanel value={value} index={1}>
+      <TabPanel value={tabSelected} index={1}>
         <DialogTitle>
           {invoice && invoice.id ? 'Alterar receita' : 'Inserir receita'}
         </DialogTitle>
         <form onSubmit={formRevenue.handleSubmit}>
           <DialogContent sx={{ paddingTop: 0 }}>
             <FormControl fullWidth margin='normal' size='small'>
-              <InputLabel id="revenue-category-label">Categoria da receita</InputLabel>
-              <Select
-                label='Categoria da receita' labelId="revenue-category-label"
-                name='revenueCategory' id="revenueCategory"
-                onChange={formRevenue.handleChange}
-                value={formRevenue.values.revenueCategory}
-                variant='outlined' size='small' type='text'
-                autoComplete='off'
-              >
-                <MenuItem value='Salário'>Salário</MenuItem>
-                <MenuItem value='Freelancer'>Freelancer</MenuItem>
-                <MenuItem value='Empréstimos'>Empréstimos</MenuItem>
-                <MenuItem value='Outros'>Outros</MenuItem>
-              </Select>
+              <Autocomplete
+                options={revenueCategories}
+                getOptionLabel={(option) => option.label}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Categoria da receita"
+                    variant="outlined"
+                    size="small"
+                    margin="dense"
+                  />
+                )}
+                onChange={(event, value) => formRevenue.setFieldValue('revenueCategory', value ? value.label : '')}
+                value={revenueCategories.find(option => option.label === formRevenue.values.revenueCategory) || null}
+              />
             </FormControl>
             <CurrencyInput nameOfKeyValue='value' form={formRevenue} />
             <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='pt-BR'>
