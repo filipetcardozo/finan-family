@@ -1,12 +1,12 @@
 import type { AppProps } from 'next/app'
 import React from 'react'
-import Head from 'next/head';
 import { SnackbarProvider } from 'notistack';
 import { AuthProvider } from '../hooks/useAuth';
 import { MonthSelectedProvider } from '../contexts/monthSelected';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { ExpensesProvider } from '../contexts/expenses';
 import { RevenuesProvider } from '../contexts/revenues';
+import { MobileProvider } from '../contexts/isMobileContext';
 
 const theme = createTheme({
   palette: {
@@ -35,15 +35,17 @@ const theme = createTheme({
 function MyApp({ Component, pageProps }: AppProps) {
   return <AuthProvider>
     <ThemeProvider theme={theme}>
-      <SnackbarProvider maxSnack={3}>
-        <MonthSelectedProvider>
-          <RevenuesProvider>
-            <ExpensesProvider>
-              <Component {...pageProps} />
-            </ExpensesProvider>
-          </RevenuesProvider>
-        </MonthSelectedProvider>
-      </SnackbarProvider>
+      <MobileProvider>
+        <SnackbarProvider maxSnack={3}>
+          <MonthSelectedProvider>
+            <RevenuesProvider>
+              <ExpensesProvider>
+                <Component {...pageProps} />
+              </ExpensesProvider>
+            </RevenuesProvider>
+          </MonthSelectedProvider>
+        </SnackbarProvider>
+      </MobileProvider>
     </ThemeProvider>
   </AuthProvider>
 }

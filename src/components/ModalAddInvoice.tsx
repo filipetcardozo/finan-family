@@ -5,10 +5,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
 import { useFormik } from 'formik';
 import { IInvoice } from '../providers/invoices/types';
 import dayjs, { Dayjs } from 'dayjs';
@@ -24,13 +21,12 @@ import { CurrencyInput } from './InputCurrency';
 import { ExpensesContext } from '../contexts/expenses';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import { IRevenue } from '../providers/revenues/types';
 import { putRevenue, updateRevenue } from '../providers/revenues/services';
 import { RevenuesContext } from '../contexts/revenues';
-import ListSubheader from '@mui/material/ListSubheader';
 import { Autocomplete } from '@mui/material';
+import useMobile from '../hooks/useMobile';
 
 interface IProps {
   open: boolean,
@@ -96,6 +92,7 @@ const revenueCategories = [
 export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps) => {
   const { uid } = useAuth()
   const { enqueueSnackbar } = useSnackbar();
+  const { isMobile } = useMobile();
 
   const { handleAddInvoice, handleUpdateInvoice } = useContext(ExpensesContext);
   const { handleAddRevenue, handleUpdateRevenue } = useContext(RevenuesContext);
@@ -251,7 +248,7 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
     };
   }
 
-  return <Dialog open={open} onClose={handleClose} fullWidth>
+  return <Dialog open={open} onClose={handleClose} fullWidth fullScreen={isMobile}>
     <div>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={tabSelected} onChange={handleChangeTab} aria-label='tab revenue or expense' centered variant='fullWidth'>
@@ -279,6 +276,11 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
                     margin="dense"
                   />
                 )}
+                ListboxProps={{
+                  style: {
+                    maxHeight: '400px',
+                  },
+                }}
                 onChange={(event, value) => formExpense.setFieldValue('invoiceCategory', value ? value.label : '')}
                 value={expenseCategories.find(option => option.label === formExpense.values.invoiceCategory) || null}
               />
