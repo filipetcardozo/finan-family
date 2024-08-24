@@ -1,5 +1,5 @@
-import React, { useContext, useMemo } from 'react';
-import { Container, CssBaseline, Divider, Typography } from '@mui/material';
+import React, { useContext, useMemo, useState } from 'react';
+import { Container, CssBaseline, Divider, Typography, Button } from '@mui/material';
 import Head from 'next/head';
 import { LayoutMobile } from '../components/AppLayoutMobile';
 import { useProtectPage } from '../hooks/useAuth';
@@ -18,10 +18,12 @@ import { RevenuesContext } from '../contexts/revenues';
 import { PulsingFeature } from '../components/PulsingFeature';
 
 export default function Home() {
-  useProtectPage()
+  useProtectPage();
 
   const { monthlyExpenses, invoices, expensesOfDay, loadingGetInvoices } = useContext(ExpensesContext);
   const { loadingGetRevenues, monthlyRevenues } = useContext(RevenuesContext);
+
+  const [showValues, setShowValues] = useState(false);
 
   const monthlyInvestments = useMemo(() => {
     let realInvestments = 0;
@@ -37,8 +39,8 @@ export default function Home() {
     let asWeAre = monthlyRevenues - realInvestments - monthlyExpenses;
 
     if (plannedInvestments > 0 && asWeAre < 0) {
-      realInvestments += asWeAre
-    };
+      realInvestments += asWeAre;
+    }
 
     if (realInvestments < 0) realInvestments = 0;
 
@@ -58,24 +60,24 @@ export default function Home() {
   const HappyOrSad = () => {
     const iconStyle: CSS.Properties = {
       position: 'relative', top: '5px', fontSize: '28px'
-    }
+    };
 
     if (asWeAre > 2000) {
-      return <ImCool style={iconStyle} />
+      return <ImCool style={iconStyle} />;
     } else if (asWeAre > 1500) {
-      return <ImHappy style={iconStyle} />
+      return <ImHappy style={iconStyle} />;
     } else if (asWeAre > 1000) {
-      return <ImSmile style={iconStyle} />
-    } else if (asWeAre > 600) {
-      return <ImWondering style={iconStyle} />
+      return <ImSmile style={iconStyle} />;
     } else if (asWeAre > 300) {
-      return <ImSad style={iconStyle} />
-    } else if (asWeAre <= 300) {
-      return <ImAngry style={iconStyle} />
+      return <ImWondering style={iconStyle} />;
+    } else if (asWeAre > 100) {
+      return <ImSad style={iconStyle} />;
+    } else if (asWeAre <= 100) {
+      return <ImAngry style={iconStyle} />;
     } else {
-      return <ImConfused style={iconStyle} />
+      return <ImConfused style={iconStyle} />;
     }
-  }
+  };
 
   return (
     <>
@@ -96,16 +98,12 @@ export default function Home() {
                         Como estamos?
                       </Typography>
                       <Typography sx={{ fontSize: 30, fontWeight: 'bold' }} color={asWeAre > 0 ? 'green' : 'red'}>
-                        {asWeAre > 0 && '+'}
-                        {formatterCurrency(asWeAre)} <HappyOrSad />
+                        {showValues ? <>
+                          {asWeAre > 0 && '+'}
+                          {formatterCurrency(asWeAre)} <HappyOrSad />
+                        </> : '****'}
+
                       </Typography>
-                      {
-                        monthlyInvestments.plannedInvestments > 0 && monthlyInvestments.realInvestments < monthlyInvestments.plannedInvestments && <PulsingFeature>
-                          <Typography color='orange' fontSize={13}>
-                            ⚠️ Você está gastando do investimento! ⚠️
-                          </Typography>
-                        </PulsingFeature>
-                      }
 
                       <Divider sx={{ my: 4 }} />
 
@@ -113,7 +111,7 @@ export default function Home() {
                         Receitas
                       </Typography>
                       <Typography sx={{ fontSize: 20 }} color="green">
-                        {formatterCurrency(monthlyRevenues)}
+                        {showValues ? formatterCurrency(monthlyRevenues) : '****'}
                       </Typography>
 
                       <Divider sx={{ my: 4 }} />
@@ -122,7 +120,7 @@ export default function Home() {
                         Despesas
                       </Typography>
                       <Typography sx={{ fontSize: 20 }} color="red">
-                        {formatterCurrency(monthlyExpenses)}
+                        {showValues ? formatterCurrency(monthlyExpenses) : '****'}
                       </Typography>
 
                       <Divider sx={{ my: 4 }} />
@@ -131,16 +129,19 @@ export default function Home() {
                         Investimentos
                       </Typography>
                       <Typography sx={{ fontSize: 16, fontWeight: 'bold' }} color='green'>
-                        {formatterCurrency(monthlyInvestments.realInvestments)}
+                        {showValues ? formatterCurrency(monthlyInvestments.realInvestments) : '****'}
                       </Typography>
                       {
                         monthlyInvestments.plannedInvestments !== monthlyInvestments.realInvestments && <Typography
                           sx={{ fontSize: 14 }} color='red'
                         >
-                          Planejado: {monthlyInvestments.plannedInvestments > 0 ? formatterCurrency(monthlyInvestments.plannedInvestments) : '-'}
+                          Planejado: {showValues ? formatterCurrency(monthlyInvestments.plannedInvestments) : '****'}
                         </Typography>
                       }
 
+                      <Button variant="contained" onClick={() => setShowValues(prev => !prev)} sx={{ mt: 2 }}>
+                        {showValues ? 'Ocultar valores' : 'Mostrar valores'}
+                      </Button>
                     </CardContent>
                   </Card>
                 </Box>
