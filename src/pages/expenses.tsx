@@ -55,15 +55,15 @@ export default function Expenses() {
       minWidth: 40,
     },
     {
-      field: 'description',
-      headerName: 'Descrição',
-      flex: 1,
-    },
-    {
       field: 'addDate',
       headerName: 'Data',
       minWidth: 50,
       renderCell: (({ value }) => dayjs(value).format('DD/MM/YYYY')),
+    },
+    {
+      field: 'description',
+      headerName: 'Descrição',
+      flex: 1,
     },
     {
       field: 'id',
