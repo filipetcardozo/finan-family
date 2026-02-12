@@ -13,11 +13,25 @@ export const PieChart: React.FC<Props> = ({ expenses }) => {
   const COLORS = ['#d1495b', '#edae49', '#00798c', '#30638e', '#4f772d', '#6c4f7d', '#ef5d60', '#4f6d7a'];
   const RADIAN = Math.PI / 180;
 
+  const isInvestmentCategory = (category?: string) => {
+    if (!category) {
+      return false;
+    }
+
+    const normalized = category
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+    return normalized.startsWith('invest');
+  };
+
   const dataPieChart = useMemo(() => {
     const categories = new Map<string, number>();
 
     expenses.forEach(invoice => {
-      if (invoice.invoiceCategory === 'Investimentos') {
+      if (isInvestmentCategory(invoice.invoiceCategory)) {
         return;
       }
 

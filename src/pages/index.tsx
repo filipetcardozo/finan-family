@@ -106,12 +106,26 @@ export default function Home() {
     return `${year}-${month}-${day}`;
   });
 
+  const isInvestmentCategory = (category?: string) => {
+    if (!category) {
+      return false;
+    }
+
+    const normalized = category
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+    return normalized.startsWith('invest');
+  };
+
   const monthlyInvestments = useMemo(() => {
     let realInvestments = 0;
     let plannedInvestments = 0;
 
     invoices.forEach(invoice => {
-      if (invoice.invoiceCategory === 'Investimentos') {
+      if (isInvestmentCategory(invoice.invoiceCategory)) {
         realInvestments += invoice.value ?? 0;
         plannedInvestments += invoice.value ?? 0;
       }

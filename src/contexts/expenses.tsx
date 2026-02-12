@@ -40,6 +40,20 @@ export const ExpensesProvider = ({ children }: any) => {
   const { dateToAnalyze } = useContext(MonthSelectedContext);
   const { monthlyRevenues } = useContext(RevenuesContext);
 
+  const isInvestmentCategory = (category?: string) => {
+    if (!category) {
+      return false;
+    }
+
+    const normalized = category
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+    return normalized.startsWith('invest');
+  };
+
   useEffect(() => {
     if (uid) {
       setLoadingGetInvoices(true);
@@ -57,7 +71,7 @@ export const ExpensesProvider = ({ children }: any) => {
 
     if (invoices.length > 0) {
       invoices.forEach(v => {
-        if (v.value && v.addDate && v.invoiceCategory !== 'Investimentos') totalExpenses += v.value;
+        if (v.value && v.addDate && !isInvestmentCategory(v.invoiceCategory)) totalExpenses += v.value;
       })
     }
 
