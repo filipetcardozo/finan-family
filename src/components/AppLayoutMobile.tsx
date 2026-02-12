@@ -38,6 +38,13 @@ export const LayoutMobile = ({ children, tabSelected }: Props) => {
   const handleCloseModal = () => setOpenAddInvoiceModal(false);
   const handleOpenModal = () => setOpenAddInvoiceModal(true);
 
+  const navigateWithCurrentQuery = (pathname: string) => {
+    router.push({
+      pathname,
+      query: router.query
+    });
+  };
+
   return <Box>
     <AppBar />
     <Box component='main' sx={{ mt: 10, mb: 15 }} width='100%'>
@@ -53,13 +60,13 @@ export const LayoutMobile = ({ children, tabSelected }: Props) => {
         onChange={(event, newValue) => {
           switch (newValue) {
             case 0:
-              router.push('/');
+              navigateWithCurrentQuery('/');
               break;
             case 2:
-              router.push('/expenses');
+              navigateWithCurrentQuery('/expenses');
               break;
             case 3:
-              router.push('/revenues');
+              navigateWithCurrentQuery('/revenues');
               break;
           }
         }}

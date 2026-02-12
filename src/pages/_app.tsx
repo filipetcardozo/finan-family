@@ -11,8 +11,9 @@ import { MobileProvider } from '../contexts/isMobileContext';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#003366',
-      light: '#0066CC'
+      main: '#0f6a72',
+      light: '#15917c',
+      dark: '#082b43'
     },
     secondary: {
       main: '#cce5ff',

@@ -27,6 +27,7 @@ import { putRevenue, updateRevenue } from '../providers/revenues/services';
 import { RevenuesContext } from '../contexts/revenues';
 import { Autocomplete } from '@mui/material';
 import useMobile from '../hooks/useMobile';
+import { MonthSelectedContext } from '../contexts/monthSelected';
 
 interface IProps {
   open: boolean,
@@ -88,17 +89,28 @@ const revenueCategories = [
   { label: 'Outros' },
 ];
 
+const getDefaultAddDateBySelectedMonth = (dateToAnalyze: Dayjs): Dayjs => {
+  if (dateToAnalyze.isAfter(dayjs(), 'month')) {
+    return dateToAnalyze.startOf('month');
+  }
+
+  return dayjs(new Date());
+};
+
 export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps) => {
   const { uid } = useAuth()
   const { enqueueSnackbar } = useSnackbar();
   const { isMobile } = useMobile();
+  const { dateToAnalyze } = useContext(MonthSelectedContext);
 
   const { handleAddInvoice, handleUpdateInvoice } = useContext(ExpensesContext);
   const { handleAddRevenue, handleUpdateRevenue } = useContext(RevenuesContext);
 
+  const defaultAddDate = getDefaultAddDateBySelectedMonth(dateToAnalyze);
+
   const initialValuesExpenseForm: IInvoice = {
-    addDate: dayjs(new Date()),
-    addDateFormatted: dayjs(new Date()).format('MM/YYYY').toString(),
+    addDate: defaultAddDate,
+    addDateFormatted: defaultAddDate.format('MM/YYYY').toString(),
     description: '',
     invoiceCategory: '',
     value: undefined,
@@ -107,8 +119,8 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
   };
 
   const initialValuesRevenueForm: IRevenue = {
-    addDate: dayjs(new Date()),
-    addDateFormatted: dayjs(new Date()).format('MM/YYYY').toString(),
+    addDate: defaultAddDate,
+    addDateFormatted: defaultAddDate.format('MM/YYYY').toString(),
     description: '',
     revenueCategory: '',
     value: undefined,
@@ -226,6 +238,29 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
       }
     }
   });
+
+  React.useEffect(() => {
+    if (!open || invoice?.id || revenue?.id) {
+      return;
+    }
+
+    const selectedDate = getDefaultAddDateBySelectedMonth(dateToAnalyze);
+
+    const defaultExpenseValues: IInvoice = {
+      ...initialValuesExpenseForm,
+      addDate: selectedDate,
+      addDateFormatted: selectedDate.format('MM/YYYY').toString(),
+    };
+
+    const defaultRevenueValues: IRevenue = {
+      ...initialValuesRevenueForm,
+      addDate: selectedDate,
+      addDateFormatted: selectedDate.format('MM/YYYY').toString(),
+    };
+
+    formExpense.resetForm({ values: defaultExpenseValues });
+    formRevenue.resetForm({ values: defaultRevenueValues });
+  }, [dateToAnalyze, invoice?.id, open, revenue?.id]);
 
   // Tabs
   const [tabSelected, setTabSelected] = React.useState(0);
