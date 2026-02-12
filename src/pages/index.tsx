@@ -330,48 +330,52 @@ export default function Home() {
                         >
                           {showValues ? `${asWeAre > 0 ? '+' : ''}${formatterCurrency(asWeAre)} ${financialWellness.emoji}` : '****'}
                         </Typography>
-                        <Stack direction='row' spacing={0.6} alignItems='center' sx={{ mt: 0.25 }}>
-                          <Typography sx={{ fontSize: 11.5, opacity: 0.8 }}>
-                            Nota geral: {financialWellness.score.toFixed(0)}% · {financialWellness.label}
-                          </Typography>
-                          <IconButton
-                            size='small'
-                            onClick={() => setShowFinancialHelp(prev => !prev)}
-                            sx={{ color: '#d2f3ff', p: 0.35 }}
-                          >
-                            <InfoOutlinedIcon fontSize='inherit' />
-                          </IconButton>
-                        </Stack>
-                        <Collapse in={showFinancialHelp}>
-                          <Box
-                            sx={{
-                              mt: 0.9,
-                              p: 1.1,
-                              borderRadius: 2,
-                              border: '1px solid rgba(213, 248, 255, .28)',
-                              backgroundColor: 'rgba(4, 34, 53, .28)',
-                            }}
-                          >
-                            <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: '#d9f7ff' }}>
-                              O que essa nota significa?
-                            </Typography>
-                            <Typography sx={{ mt: 0.45, fontSize: 12, opacity: 0.9 }}>
-                              Essa nota mostra a saúde do seu mês: quanto menores os gastos e quanto maior o investimento, melhor.
-                            </Typography>
-                            <Typography sx={{ mt: 0.35, fontSize: 12, opacity: 0.9 }}>
-                              Nota ruim: abaixo de 55% · Nota mediana: de 55% até 84% · Nota excelente: 85% ou mais.
-                            </Typography>
-                            <Typography sx={{ mt: 0.35, fontSize: 12, opacity: 0.9 }}>
-                              {practicalExample.usesUserRevenue ? 'Exemplo com sua receita do mês' : 'Exemplo com receita de R$ 10.000'} ({formatterCurrency(practicalExample.baseRevenue)}): ideal seria gastar até {formatterCurrency(practicalExample.expensesIdeal)} (70%), investir cerca de {formatterCurrency(practicalExample.investmentsIdeal)} (20%) e manter {formatterCurrency(practicalExample.freeAmountIdeal)} livres (10%).
-                            </Typography>
-                            <Typography sx={{ mt: 0.35, fontSize: 12, opacity: 0.9 }}>
-                              Hoje: Gastos {financialWellness.expenseRate.toFixed(0)}% da receita · Investimentos {financialWellness.investmentRate.toFixed(0)}% da receita.
-                            </Typography>
-                            <Typography sx={{ mt: 0.35, fontSize: 12, opacity: 0.9 }}>
-                              Ritmo do mês: já passou {financialWellness.monthProgress.toFixed(0)}% do mês, então o ideal seria ter gasto até cerca de {financialWellness.expectedExpenseRate.toFixed(0)}% da receita.
-                            </Typography>
-                          </Box>
-                        </Collapse>
+                        {showValues && (
+                          <>
+                            <Stack direction='row' spacing={0.6} alignItems='center' sx={{ mt: 0.25 }}>
+                              <Typography sx={{ fontSize: 11.5, opacity: 0.8 }}>
+                                Nota geral: {financialWellness.score.toFixed(0)}% · {financialWellness.label}
+                              </Typography>
+                              <IconButton
+                                size='small'
+                                onClick={() => setShowFinancialHelp(prev => !prev)}
+                                sx={{ color: '#d2f3ff', p: 0.35 }}
+                              >
+                                <InfoOutlinedIcon fontSize='inherit' />
+                              </IconButton>
+                            </Stack>
+                            <Collapse in={showFinancialHelp}>
+                              <Box
+                                sx={{
+                                  mt: 0.9,
+                                  p: 1.1,
+                                  borderRadius: 2,
+                                  border: '1px solid rgba(213, 248, 255, .28)',
+                                  backgroundColor: 'rgba(4, 34, 53, .28)',
+                                }}
+                              >
+                                <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: '#d9f7ff' }}>
+                                  O que essa nota significa?
+                                </Typography>
+                                <Typography sx={{ mt: 0.45, fontSize: 12, opacity: 0.9 }}>
+                                  Essa nota mostra a saúde do seu mês: quanto menores os gastos e quanto maior o investimento, melhor.
+                                </Typography>
+                                <Typography sx={{ mt: 0.35, fontSize: 12, opacity: 0.9 }}>
+                                  Nota ruim: abaixo de 55% · Nota mediana: de 55% até 84% · Nota excelente: 85% ou mais.
+                                </Typography>
+                                <Typography sx={{ mt: 0.35, fontSize: 12, opacity: 0.9 }}>
+                                  {practicalExample.usesUserRevenue ? 'Exemplo com sua receita do mês' : 'Exemplo com receita de R$ 10.000'} ({formatterCurrency(practicalExample.baseRevenue)}): ideal seria gastar até {formatterCurrency(practicalExample.expensesIdeal)} (70%), investir cerca de {formatterCurrency(practicalExample.investmentsIdeal)} (20%) e manter {formatterCurrency(practicalExample.freeAmountIdeal)} livres (10%).
+                                </Typography>
+                                <Typography sx={{ mt: 0.35, fontSize: 12, opacity: 0.9 }}>
+                                  Hoje: Gastos {financialWellness.expenseRate.toFixed(0)}% da receita · Investimentos {financialWellness.investmentRate.toFixed(0)}% da receita.
+                                </Typography>
+                                <Typography sx={{ mt: 0.35, fontSize: 12, opacity: 0.9 }}>
+                                  Ritmo do mês: já passou {financialWellness.monthProgress.toFixed(0)}% do mês, então o ideal seria ter gasto até cerca de {financialWellness.expectedExpenseRate.toFixed(0)}% da receita.
+                                </Typography>
+                              </Box>
+                            </Collapse>
+                          </>
+                        )}
                       </Box>
 
                       <Stack
@@ -382,7 +386,17 @@ export default function Home() {
                       >
                         <Button
                           variant='contained'
-                          onClick={() => setShowValues(prev => !prev)}
+                          onClick={() => {
+                            setShowValues(prev => {
+                              const next = !prev;
+
+                              if (!next) {
+                                setShowFinancialHelp(false);
+                              }
+
+                              return next;
+                            });
+                          }}
                           startIcon={showValues ? <VisibilityOffRoundedIcon /> : <VisibilityRoundedIcon />}
                           sx={{
                             px: 2,

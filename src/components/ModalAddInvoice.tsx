@@ -22,6 +22,7 @@ import { ExpensesContext } from '../contexts/expenses';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import { IRevenue } from '../providers/revenues/types';
 import { putRevenue, updateRevenue } from '../providers/revenues/services';
 import { RevenuesContext } from '../contexts/revenues';
@@ -282,21 +283,65 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
     };
   }
 
-  return <Dialog open={open} onClose={handleClose} fullWidth fullScreen={isMobile}>
+  const secondaryActionSx = {
+    color: '#2a4f64',
+    borderColor: 'rgba(8, 43, 67, 0.22)',
+    '&:hover': {
+      borderColor: 'rgba(8, 43, 67, 0.42)',
+      backgroundColor: 'rgba(8, 43, 67, 0.05)',
+    },
+  };
+
+  const primaryActionSx = {
+    background: 'linear-gradient(136deg, #082b43 0%, #0f6a72 48%, #15917c 100%)',
+    '&:hover': {
+      background: 'linear-gradient(136deg, #0a3451 0%, #12747c 48%, #1aa188 100%)',
+    },
+  };
+
+  return <Dialog
+    open={open}
+    onClose={handleClose}
+    fullWidth
+    maxWidth='sm'
+  >
     <div>
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={tabSelected} onChange={handleChangeTab} aria-label='tab revenue or expense' centered variant='fullWidth'>
-          <Tab label='Despesa' {...a11yProps(0)} />
-          <Tab label='Receita' {...a11yProps(1)} />
+      <Box
+        sx={{
+          px: 1.2,
+          pt: 1.2,
+          pb: 0.6,
+          background: 'linear-gradient(136deg, rgba(8,43,67,0.06) 0%, rgba(15,106,114,0.08) 48%, rgba(21,145,124,0.08) 100%)',
+          borderBottom: '1px solid rgba(8, 43, 67, 0.12)',
+        }}
+      >
+        <Tabs
+          value={tabSelected}
+          onChange={handleChangeTab}
+          aria-label='tab revenue or expense'
+          centered
+          variant='fullWidth'
+          sx={{
+            minHeight: 40,
+            '& .MuiTabs-indicator': {
+              height: 3,
+              borderRadius: 3,
+              background: 'linear-gradient(90deg, #0f6a72 0%, #15917c 100%)',
+            },
+          }}
+        >
+          <Tab label='Despesa' {...a11yProps(0)} sx={{ minHeight: 40, fontSize: 12.5, fontWeight: 700, color: '#2a4f64' }} />
+          <Tab label='Receita' {...a11yProps(1)} sx={{ minHeight: 40, fontSize: 12.5, fontWeight: 700, color: '#2a4f64' }} />
         </Tabs>
       </Box>
       <TabPanel value={tabSelected} index={0}>
-        <DialogTitle>
+        <DialogTitle sx={{ fontSize: 20, fontWeight: 700, color: '#123047' }}>
           {invoice && invoice.id ? 'Alterar despesa' : 'Inserir despesa'}
         </DialogTitle>
         <form onSubmit={formExpense.handleSubmit}>
-          <DialogContent sx={{ paddingTop: 0 }}>
-            <FormControl fullWidth margin='normal' size='small'>
+          <DialogContent sx={{ pt: 0.8, pb: 1.2 }}>
+            <Stack spacing={2}>
+            <FormControl fullWidth size='small'>
               <Autocomplete
                 options={expenseCategories}
                 getOptionLabel={(option) => option.label}
@@ -307,14 +352,8 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
                     label="Categoria da despesa"
                     variant="outlined"
                     size="small"
-                    margin="dense"
                   />
                 )}
-                ListboxProps={{
-                  style: {
-                    maxHeight: '400px',
-                  },
-                }}
                 onChange={(event, value) => formExpense.setFieldValue('invoiceCategory', value ? value.label : '')}
                 value={expenseCategories.find(option => option.label === formExpense.values.invoiceCategory) || null}
               />
@@ -331,7 +370,6 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
                 renderInput={(params) => <TextField
                   {...params}
                   size='small'
-                  margin='normal'
                   name='addDate'
                   autoComplete='off'
                   fullWidth
@@ -343,29 +381,31 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
               label='Descrição' name='description' id='description'
               onChange={formExpense.handleChange}
               value={formExpense.values.description}
-              variant="outlined" size='small' margin='normal'
+              variant="outlined" size='small'
               autoComplete='off'
               type='text'
               fullWidth
               multiline
               rows={3}
             />
+            </Stack>
           </DialogContent>
-          <DialogActions>
-            <Button size='small' onClick={handleClose}>Voltar</Button>
-            <LoadingButton type='submit' variant='contained' size='small' loading={loadingButton}>
+          <DialogActions sx={{ px: 3, pb: 2.2, pt: 1.2 }}>
+            <Button size='small' variant='outlined' onClick={handleClose} sx={secondaryActionSx}>Voltar</Button>
+            <LoadingButton type='submit' variant='contained' size='small' loading={loadingButton} sx={primaryActionSx}>
               {invoice && invoice.id ? 'Atualizar' : 'Inserir'}
             </LoadingButton>
           </DialogActions>
         </form>
       </TabPanel>
       <TabPanel value={tabSelected} index={1}>
-        <DialogTitle>
-          {invoice && invoice.id ? 'Alterar receita' : 'Inserir receita'}
+        <DialogTitle sx={{ fontSize: 20, fontWeight: 700, color: '#123047' }}>
+          {revenue && revenue.id ? 'Alterar receita' : 'Inserir receita'}
         </DialogTitle>
         <form onSubmit={formRevenue.handleSubmit}>
-          <DialogContent sx={{ paddingTop: 0 }}>
-            <FormControl fullWidth margin='normal' size='small'>
+          <DialogContent sx={{ pt: 0.8, pb: 1.2 }}>
+            <Stack spacing={1}>
+            <FormControl fullWidth size='small'>
               <Autocomplete
                 options={revenueCategories}
                 getOptionLabel={(option) => option.label}
@@ -375,7 +415,6 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
                     label="Categoria da receita"
                     variant="outlined"
                     size="small"
-                    margin="dense"
                   />
                 )}
                 onChange={(event, value) => formRevenue.setFieldValue('revenueCategory', value ? value.label : '')}
@@ -394,7 +433,6 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
                 renderInput={(params) => <TextField
                   {...params}
                   size='small'
-                  margin='normal'
                   name='addDate'
                   autoComplete='off'
                   fullWidth
@@ -406,17 +444,18 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
               label='Descrição' name='description' id='description'
               onChange={formRevenue.handleChange}
               value={formRevenue.values.description}
-              variant="outlined" size='small' margin='normal'
+              variant="outlined" size='small'
               autoComplete='off'
               type='text'
               fullWidth
               multiline
               rows={3}
             />
+            </Stack>
           </DialogContent>
-          <DialogActions>
-            <Button size='small' onClick={handleClose}>Voltar</Button>
-            <LoadingButton type='submit' variant='contained' size='small' loading={loadingButton}>
+          <DialogActions sx={{ px: 3, pb: 2.2, pt: 1.2 }}>
+            <Button size='small' variant='outlined' onClick={handleClose} sx={secondaryActionSx}>Voltar</Button>
+            <LoadingButton type='submit' variant='contained' size='small' loading={loadingButton} sx={primaryActionSx}>
               {revenue && revenue.id ? 'Atualizar' : 'Inserir'}
             </LoadingButton>
           </DialogActions>
