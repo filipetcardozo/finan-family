@@ -134,10 +134,6 @@ export const AppBar: React.FC = () => {
                         >
                             <MenuRoundedIcon sx={{ fontSize: 17 }} />
                         </IconButton>
-                        <CalendarMonthRoundedIcon sx={{ fontSize: 16 }} />
-                        <Typography sx={{ fontSize: 13.5, fontWeight: 700, display: { xs: 'none', sm: 'block' } }}>
-                            Panorama do mês
-                        </Typography>
                     </Stack>
 
                     <Stack
@@ -260,7 +256,6 @@ export const AppBar: React.FC = () => {
                             color: '#ecfcff',
                         }}
                     >
-                        <Typography sx={{ fontSize: 12.5, opacity: 0.88 }}>Navegacao</Typography>
                         <Typography sx={{ fontSize: 21, fontWeight: 700, lineHeight: 1.2 }}>Finan Family</Typography>
                     </Box>
 

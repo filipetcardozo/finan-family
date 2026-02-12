@@ -77,6 +77,12 @@ export default function Expenses() {
     return categories.size;
   }, [filteredInvoices]);
 
+  const infoCardSx = {
+    borderRadius: 4,
+    borderColor: 'rgba(6, 42, 63, 0.10)',
+    boxShadow: '0 18px 30px -26px rgba(6, 42, 63, 0.5)',
+  };
+
   const handleCloseModalDeleteInvoice = () => {
     setOpenModalDeleteInvoice({ invoiceId: '', open: false });
   };
@@ -186,42 +192,86 @@ export default function Expenses() {
                 sx={{
                   display: 'grid',
                   gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' },
-                  gap: 1.5,
+                  gap: 2,
                 }}
               >
-                <Card variant='outlined' sx={{ borderRadius: 3 }}>
-                  <CardContent sx={{ p: 2 }}>
+                <Card variant='outlined' sx={infoCardSx}>
+                  <CardContent sx={{ p: 2.5 }}>
                     <Stack direction='row' justifyContent='space-between' alignItems='center'>
                       <Box>
-                        <Typography sx={{ fontSize: 12, color: '#577084' }}>Total no mês</Typography>
-                        <Typography sx={{ fontSize: 22, fontWeight: 700, color: '#102435' }}>
+                        <Typography
+                          sx={{
+                            fontSize: 13,
+                            letterSpacing: '.04em',
+                            textTransform: 'uppercase',
+                            color: '#567086',
+                          }}
+                        >
+                          Total no mês
+                        </Typography>
+                        <Typography sx={{ mt: 0.5, fontSize: 23, fontWeight: 700, color: '#102435' }}>
                           {formatterCurrency(monthlyExpenses)}
                         </Typography>
                       </Box>
-                      <PaidRoundedIcon sx={{ color: '#0f6a72' }} />
+                      <Box
+                        sx={{
+                          minWidth: 42,
+                          minHeight: 42,
+                          borderRadius: 2.5,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#176c6f',
+                          background: '#176c6f18',
+                        }}
+                      >
+                        <PaidRoundedIcon />
+                      </Box>
                     </Stack>
                   </CardContent>
                 </Card>
 
-                <Card variant='outlined' sx={{ borderRadius: 3 }}>
-                  <CardContent sx={{ p: 2 }}>
+                <Card variant='outlined' sx={infoCardSx}>
+                  <CardContent sx={{ p: 2.5 }}>
                     <Stack direction='row' justifyContent='space-between' alignItems='center'>
                       <Box>
-                        <Typography sx={{ fontSize: 12, color: '#577084' }}>Lançamentos</Typography>
-                        <Typography sx={{ fontSize: 22, fontWeight: 700, color: '#102435' }}>
+                        <Typography
+                          sx={{
+                            fontSize: 13,
+                            letterSpacing: '.04em',
+                            textTransform: 'uppercase',
+                            color: '#567086',
+                          }}
+                        >
+                          Lançamentos
+                        </Typography>
+                        <Typography sx={{ mt: 0.5, fontSize: 23, fontWeight: 700, color: '#102435' }}>
                           {filteredInvoices.length}
                         </Typography>
-                        <Typography sx={{ fontSize: 12, color: '#6d8698' }}>
+                        <Typography sx={{ mt: 0.6, fontSize: 13, color: '#607d92' }}>
                           {categoryCount} categorias
                         </Typography>
                       </Box>
-                      <InsightsRoundedIcon sx={{ color: '#0f6a72' }} />
+                      <Box
+                        sx={{
+                          minWidth: 42,
+                          minHeight: 42,
+                          borderRadius: 2.5,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#3f5e91',
+                          background: '#3f5e9118',
+                        }}
+                      >
+                        <InsightsRoundedIcon />
+                      </Box>
                     </Stack>
                   </CardContent>
                 </Card>
               </Box>
 
-              <Card variant='outlined' sx={{ borderRadius: 4, borderColor: 'rgba(6, 42, 63, 0.08)' }}>
+              <Card variant='outlined' sx={infoCardSx}>
                 <CardContent sx={{ p: { xs: 1.2, sm: 1.8 } }}>
                   <Stack spacing={1.2}>
                     <TextField

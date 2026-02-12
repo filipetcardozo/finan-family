@@ -5,11 +5,14 @@ import {
   Card,
   CardContent,
   Chip,
+  Collapse,
   Container,
   CssBaseline,
   Divider,
+  IconButton,
   LinearProgress,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material';
 import Head from 'next/head';
@@ -20,8 +23,7 @@ import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import SavingsRoundedIcon from '@mui/icons-material/SavingsRounded';
 import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
-import CSS from 'csstype';
-import { ImAngry, ImConfused, ImCool, ImHappy, ImSad, ImSmile, ImWondering } from 'react-icons/im';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { ExpensesContext } from '../contexts/expenses';
 import { RevenuesContext } from '../contexts/revenues';
 import { LayoutMobile } from '../components/AppLayoutMobile';
@@ -35,7 +37,7 @@ import { MonthSelectedContext } from '../contexts/monthSelected';
 type StatCardProps = {
   title: string;
   value: string;
-  subtitle: string;
+  subtitle?: string;
   icon: React.ReactNode;
   accent: string;
   delay: string;
@@ -89,11 +91,20 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon, accen
 export default function Home() {
   useProtectPage();
 
-  const { monthlyExpenses, invoices, expensesOfDay, loadingGetInvoices } = useContext(ExpensesContext);
+  const { monthlyExpenses, invoices, loadingGetInvoices } = useContext(ExpensesContext);
   const { loadingGetRevenues, monthlyRevenues } = useContext(RevenuesContext);
   const { dateToAnalyze } = useContext(MonthSelectedContext);
 
   const [showValues, setShowValues] = useState(false);
+  const [showFinancialHelp, setShowFinancialHelp] = useState(false);
+  const [selectedExpenseDate, setSelectedExpenseDate] = useState(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  });
 
   const monthlyInvestments = useMemo(() => {
     let realInvestments = 0;
@@ -120,14 +131,8 @@ export default function Home() {
   }, [invoices, monthlyExpenses, monthlyRevenues]);
 
   const asWeAre = useMemo(() => {
-    const currentBalance = monthlyRevenues - monthlyExpenses;
-
-    if (currentBalance > 0) {
-      return currentBalance - monthlyInvestments.plannedInvestments;
-    }
-
-    return currentBalance;
-  }, [monthlyExpenses, monthlyInvestments, monthlyRevenues]);
+    return monthlyRevenues - monthlyExpenses - monthlyInvestments.realInvestments;
+  }, [monthlyExpenses, monthlyInvestments.realInvestments, monthlyRevenues]);
 
   const monthLabel = useMemo(() => {
     return new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(dateToAnalyze.toDate());
@@ -142,28 +147,94 @@ export default function Home() {
     return Math.max(0, Math.min(usage, 100));
   }, [monthlyExpenses, monthlyInvestments.realInvestments, monthlyRevenues]);
 
+  const monthProgress = useMemo(() => {
+    const selectedDate = dateToAnalyze.toDate();
+    const now = new Date();
+
+    const selectedYear = selectedDate.getFullYear();
+    const selectedMonth = selectedDate.getMonth();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+
+    if (selectedYear < currentYear || (selectedYear === currentYear && selectedMonth < currentMonth)) {
+      return 100;
+    }
+
+    if (selectedYear > currentYear || (selectedYear === currentYear && selectedMonth > currentMonth)) {
+      return 0;
+    }
+
+    const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+    const currentDay = Math.min(now.getDate(), daysInMonth);
+
+    return (currentDay / daysInMonth) * 100;
+  }, [dateToAnalyze]);
+
+  const financialWellness = useMemo(() => {
+    if (monthlyRevenues <= 0) {
+      return {
+        score: 0,
+        label: 'Sem receita no mês',
+        emoji: '😶',
+        color: '#ffd8cf',
+        expenseRate: 0,
+        investmentRate: 0,
+        expectedExpenseRate: 0,
+        monthProgress,
+      };
+    }
+
+    // Referência prática: despesas até 70%, investimentos em torno de 20% e folga de caixa de 10%.
+    const expenseRate = (monthlyExpenses / monthlyRevenues) * 100;
+    const investmentRate = (monthlyInvestments.realInvestments / monthlyRevenues) * 100;
+    const freeCashRate = (asWeAre / monthlyRevenues) * 100;
+    const expectedExpenseRate = (70 * monthProgress) / 100;
+
+    const expenseScore = Math.max(0, Math.min(100, ((70 - expenseRate) / 70) * 100));
+    const investmentScore = Math.max(0, Math.min(100, (investmentRate / 20) * 100));
+    const freeCashScore = Math.max(0, Math.min(100, ((freeCashRate + 10) / 20) * 100));
+
+    const paceTolerance = 8;
+    const paceOverflow = expenseRate - (expectedExpenseRate + paceTolerance);
+    const paceScore = monthProgress >= 100
+      ? expenseScore
+      : Math.max(0, Math.min(100, 100 - Math.max(0, paceOverflow) * 4));
+
+    const score = Math.max(
+      0,
+      Math.min(100, expenseScore * 0.3 + investmentScore * 0.25 + freeCashScore * 0.15 + paceScore * 0.3)
+    );
+
+    if (score >= 85) return { score, label: 'Excelente equilíbrio', emoji: '😁', color: '#d4ffe2', expenseRate, investmentRate, expectedExpenseRate, monthProgress };
+    if (score >= 70) return { score, label: 'Bom equilíbrio', emoji: '🙂', color: '#dfffe9', expenseRate, investmentRate, expectedExpenseRate, monthProgress };
+    if (score >= 55) return { score, label: 'Atenção aos gastos', emoji: '😐', color: '#fff3d4', expenseRate, investmentRate, expectedExpenseRate, monthProgress };
+    if (score >= 40) return { score, label: 'Risco de aperto', emoji: '😟', color: '#ffe7d1', expenseRate, investmentRate, expectedExpenseRate, monthProgress };
+
+    return { score, label: 'Ajuste urgente', emoji: '😣', color: '#ffd8cf', expenseRate, investmentRate, expectedExpenseRate, monthProgress };
+  }, [asWeAre, monthProgress, monthlyExpenses, monthlyInvestments.realInvestments, monthlyRevenues]);
+
+  const practicalExample = useMemo(() => {
+    const baseRevenue = monthlyRevenues > 0 ? monthlyRevenues : 10000;
+
+    return {
+      baseRevenue,
+      expensesIdeal: baseRevenue * 0.7,
+      investmentsIdeal: baseRevenue * 0.2,
+      freeAmountIdeal: baseRevenue * 0.1,
+      usesUserRevenue: monthlyRevenues > 0,
+    };
+  }, [monthlyRevenues]);
+
+  const expensesOfSelectedDate = useMemo(() => {
+    return invoices.filter(invoice => invoice.addDate?.format('YYYY-MM-DD') === selectedExpenseDate);
+  }, [invoices, selectedExpenseDate]);
+
   const valueOrMask = (value: number, prefix = '') => {
     if (!showValues) {
       return '****';
     }
 
     return `${prefix}${formatterCurrency(value)}`;
-  };
-
-  const HappyOrSad = () => {
-    const iconStyle: CSS.Properties = {
-      position: 'relative',
-      top: '4px',
-      fontSize: '28px',
-    };
-
-    if (asWeAre > 2000) return <ImCool style={iconStyle} />;
-    if (asWeAre > 1500) return <ImHappy style={iconStyle} />;
-    if (asWeAre > 1000) return <ImSmile style={iconStyle} />;
-    if (asWeAre > 300) return <ImWondering style={iconStyle} />;
-    if (asWeAre > 100) return <ImSad style={iconStyle} />;
-    if (asWeAre <= 100) return <ImAngry style={iconStyle} />;
-    return <ImConfused style={iconStyle} />;
   };
 
   return (
@@ -180,47 +251,10 @@ export default function Home() {
           ) : (
             <Box
               sx={{
-                '--shape-main': '#c7f0d8',
-                '--shape-soft': '#d8ecff',
-                '--bg-top': '#f6fbff',
-                '--bg-middle': '#fff7eb',
-                '--bg-bottom': '#f2faf6',
                 position: 'relative',
-                overflow: 'hidden',
-                borderRadius: 6,
-                px: { xs: 2, sm: 3, md: 4 },
-                py: { xs: 2.5, sm: 3.5 },
-                background: 'linear-gradient(145deg, var(--bg-top) 0%, var(--bg-middle) 52%, var(--bg-bottom) 100%)',
-                border: '1px solid rgba(6, 42, 63, 0.08)',
-                boxShadow: '0 32px 55px -38px rgba(16, 36, 53, 0.55)',
+                px: { xs: 0.2, sm: 0.4 },
+                py: 0.5,
                 fontFamily: '"Avenir Next", "Trebuchet MS", "Century Gothic", sans-serif',
-                '&::before, &::after': {
-                  content: '""',
-                  position: 'absolute',
-                  borderRadius: '50%',
-                  pointerEvents: 'none',
-                },
-                '&::before': {
-                  width: 270,
-                  height: 270,
-                  top: -90,
-                  right: -60,
-                  background: 'radial-gradient(circle, var(--shape-main) 0%, rgba(199, 240, 216, 0) 72%)',
-                  animation: 'floatBlob 11s ease-in-out infinite',
-                },
-                '&::after': {
-                  width: 220,
-                  height: 220,
-                  bottom: -90,
-                  left: -60,
-                  background: 'radial-gradient(circle, var(--shape-soft) 0%, rgba(216, 236, 255, 0) 74%)',
-                  animation: 'floatBlob 13s ease-in-out infinite reverse',
-                },
-                '@keyframes floatBlob': {
-                  '0%': { transform: 'translate(0, 0)' },
-                  '50%': { transform: 'translate(0, 16px)' },
-                  '100%': { transform: 'translate(0, 0)' },
-                },
                 '@keyframes fadeInUp': {
                   from: { opacity: 0, transform: 'translateY(12px)' },
                   to: { opacity: 1, transform: 'translateY(0)' },
@@ -254,9 +288,6 @@ export default function Home() {
                         justifyContent='space-between'
                       >
                         <Box>
-                          <Typography sx={{ fontSize: 14, opacity: 0.86 }}>
-                            Panorama financeiro
-                          </Typography>
                           <Typography sx={{ fontSize: { xs: 26, sm: 32 }, fontWeight: 700, lineHeight: 1.1 }}>
                             Como estamos?
                           </Typography>
@@ -275,26 +306,58 @@ export default function Home() {
                       </Stack>
 
                       <Box>
-                        <Typography sx={{ fontSize: 13, opacity: 0.8, letterSpacing: '.02em' }}>
-                          Saldo livre do mês
-                        </Typography>
                         <Typography
                           sx={{
-                            mt: 0.4,
+                            mt: 0.2,
                             fontSize: { xs: 30, sm: 38 },
                             fontWeight: 800,
-                            color: asWeAre >= 0 ? '#d4ffe2' : '#ffd8cf',
+                            color: financialWellness.color,
                           }}
                         >
-                          {showValues ? (
-                            <>
-                              {asWeAre > 0 ? '+' : ''}
-                              {formatterCurrency(asWeAre)} <HappyOrSad />
-                            </>
-                          ) : (
-                            '****'
-                          )}
+                          {showValues ? `${asWeAre > 0 ? '+' : ''}${formatterCurrency(asWeAre)} ${financialWellness.emoji}` : '****'}
                         </Typography>
+                        <Stack direction='row' spacing={0.6} alignItems='center' sx={{ mt: 0.25 }}>
+                          <Typography sx={{ fontSize: 11.5, opacity: 0.8 }}>
+                            Nota geral: {financialWellness.score.toFixed(0)}% · {financialWellness.label}
+                          </Typography>
+                          <IconButton
+                            size='small'
+                            onClick={() => setShowFinancialHelp(prev => !prev)}
+                            sx={{ color: '#d2f3ff', p: 0.35 }}
+                          >
+                            <InfoOutlinedIcon fontSize='inherit' />
+                          </IconButton>
+                        </Stack>
+                        <Collapse in={showFinancialHelp}>
+                          <Box
+                            sx={{
+                              mt: 0.9,
+                              p: 1.1,
+                              borderRadius: 2,
+                              border: '1px solid rgba(213, 248, 255, .28)',
+                              backgroundColor: 'rgba(4, 34, 53, .28)',
+                            }}
+                          >
+                            <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: '#d9f7ff' }}>
+                              O que essa nota significa?
+                            </Typography>
+                            <Typography sx={{ mt: 0.45, fontSize: 12, opacity: 0.9 }}>
+                              Essa nota mostra a saúde do seu mês: quanto menores os gastos e quanto maior o investimento, melhor.
+                            </Typography>
+                            <Typography sx={{ mt: 0.35, fontSize: 12, opacity: 0.9 }}>
+                              Nota ruim: abaixo de 55% · Nota mediana: de 55% até 84% · Nota excelente: 85% ou mais.
+                            </Typography>
+                            <Typography sx={{ mt: 0.35, fontSize: 12, opacity: 0.9 }}>
+                              {practicalExample.usesUserRevenue ? 'Exemplo com sua receita do mês' : 'Exemplo com receita de R$ 10.000'} ({formatterCurrency(practicalExample.baseRevenue)}): ideal seria gastar até {formatterCurrency(practicalExample.expensesIdeal)} (70%), investir cerca de {formatterCurrency(practicalExample.investmentsIdeal)} (20%) e manter {formatterCurrency(practicalExample.freeAmountIdeal)} livres (10%).
+                            </Typography>
+                            <Typography sx={{ mt: 0.35, fontSize: 12, opacity: 0.9 }}>
+                              Hoje: Gastos {financialWellness.expenseRate.toFixed(0)}% da receita · Investimentos {financialWellness.investmentRate.toFixed(0)}% da receita.
+                            </Typography>
+                            <Typography sx={{ mt: 0.35, fontSize: 12, opacity: 0.9 }}>
+                              Ritmo do mês: já passou {financialWellness.monthProgress.toFixed(0)}% do mês, então o ideal seria ter gasto até cerca de {financialWellness.expectedExpenseRate.toFixed(0)}% da receita.
+                            </Typography>
+                          </Box>
+                        </Collapse>
                       </Box>
 
                       <Stack
@@ -360,9 +423,6 @@ export default function Home() {
                           },
                         }}
                       />
-                      <Typography sx={{ fontSize: 12.5, color: '#607d92' }}>
-                        Receita do mês utilizada por despesas e investimentos reais.
-                      </Typography>
                     </Stack>
                   </CardContent>
                 </Card>
@@ -377,7 +437,6 @@ export default function Home() {
                   <StatCard
                     title='Receitas'
                     value={valueOrMask(monthlyRevenues)}
-                    subtitle='Total recebido no mês'
                     icon={<TrendingUpRoundedIcon />}
                     accent='#127a49'
                     delay='160ms'
@@ -385,7 +444,6 @@ export default function Home() {
                   <StatCard
                     title='Despesas'
                     value={valueOrMask(monthlyExpenses)}
-                    subtitle='Total gasto no mês'
                     icon={<TrendingDownRoundedIcon />}
                     accent='#b83d2f'
                     delay='220ms'
@@ -428,17 +486,31 @@ export default function Home() {
                     }}
                   >
                     <CardContent sx={{ p: { xs: 2, sm: 2.4 } }}>
-                      <Typography sx={{ fontSize: 18, fontWeight: 700, color: '#102435' }}>
-                        Despesas do dia
-                      </Typography>
+                      <Stack direction='row' justifyContent='space-between' alignItems='center' spacing={1}>
+                        <Typography sx={{ fontSize: 18, fontWeight: 700, color: '#102435' }}>
+                          Despesas do dia
+                        </Typography>
+                        <TextField
+                          type='date'
+                          size='small'
+                          value={selectedExpenseDate}
+                          onChange={event => setSelectedExpenseDate(event.target.value)}
+                          InputLabelProps={{ shrink: true }}
+                          sx={{
+                            width: 142,
+                            '& .MuiInputBase-root': { height: 32, fontSize: 12 },
+                            '& input': { py: 0.7, px: 1 },
+                          }}
+                        />
+                      </Stack>
                       <Typography sx={{ mt: 0.5, mb: 1.2, fontSize: 13, color: '#607d92' }}>
-                        Movimentações lançadas hoje.
+                        Movimentações lançadas na data selecionada.
                       </Typography>
-                      {expensesOfDay.length > 0 ? (
-                        <ExpensesOfDay expensesOfDay={expensesOfDay} />
+                      {expensesOfSelectedDate.length > 0 ? (
+                        <ExpensesOfDay expensesOfDay={expensesOfSelectedDate} />
                       ) : (
                         <Typography sx={{ fontSize: 14, color: '#607d92' }}>
-                          Nenhuma despesa registrada hoje.
+                          Nenhuma despesa registrada para esta data.
                         </Typography>
                       )}
                     </CardContent>
@@ -483,3 +555,6 @@ export default function Home() {
     </>
   );
 }
+
+
+

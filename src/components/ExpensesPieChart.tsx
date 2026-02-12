@@ -47,7 +47,7 @@ export const PieChart: React.FC<Props> = ({ expenses }) => {
   };
 
   if (dataPieChart.length === 0) {
-    return <Typography sx={{ fontSize: 14, color: '#607d92' }}>Sem despesas para gerar o grafico neste mes.</Typography>;
+    return <Typography sx={{ fontSize: 14, color: '#607d92' }}>Sem despesas para gerar o gráfico neste mês.</Typography>;
   }
 
   return (
@@ -82,7 +82,7 @@ export const PieChart: React.FC<Props> = ({ expenses }) => {
         </List>
       </Box>
 
-      <Box sx={{ width: { xs: '100%', sm: '48%' }, minHeight: 220 }}>
+      <Box sx={{ width: { xs: '100%', sm: '48%' }, height: 220, minHeight: 220 }}>
         <ResponsiveContainer width='100%' height='100%'>
           <PieChartRecharts>
             <Pie
