@@ -53,12 +53,20 @@ export const LoadingTransactionsPage: React.FC<Props> = ({ type }) => {
           sx={{
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' },
-            gap: 1.5,
+            gap: 2,
           }}
         >
           {[1, 2].map(item => (
-            <Card key={item} variant='outlined' sx={{ borderRadius: 3 }}>
-              <CardContent sx={{ p: 2 }}>
+            <Card
+              key={item}
+              variant='outlined'
+              sx={{
+                borderRadius: 4,
+                borderColor: 'rgba(6, 42, 63, 0.10)',
+                boxShadow: '0 18px 30px -26px rgba(6, 42, 63, 0.5)',
+              }}
+            >
+              <CardContent sx={{ p: 2.5 }}>
                 <Stack direction='row' justifyContent='space-between' alignItems='center'>
                   <Box sx={{ width: '100%' }}>
                     <Skeleton variant='text' width='42%' />
@@ -72,7 +80,14 @@ export const LoadingTransactionsPage: React.FC<Props> = ({ type }) => {
           ))}
         </Box>
 
-        <Card variant='outlined' sx={{ borderRadius: 4, borderColor: 'rgba(6, 42, 63, 0.08)' }}>
+        <Card
+          variant='outlined'
+          sx={{
+            borderRadius: 4,
+            borderColor: 'rgba(6, 42, 63, 0.10)',
+            boxShadow: '0 18px 30px -26px rgba(6, 42, 63, 0.5)',
+          }}
+        >
           <CardContent sx={{ p: { xs: 1.2, sm: 1.8 } }}>
             <Stack spacing={1.2}>
               <TextField size='small' label='Buscar' disabled fullWidth />

@@ -11,19 +11,8 @@ export const LoadingHomePage = () => {
   return (
     <Box
       sx={{
-        '--shape-main': '#c7f0d8',
-        '--shape-soft': '#d8ecff',
-        '--bg-top': '#f6fbff',
-        '--bg-middle': '#fff7eb',
-        '--bg-bottom': '#f2faf6',
-        position: 'relative',
-        overflow: 'hidden',
-        borderRadius: 6,
-        px: { xs: 2, sm: 3, md: 4 },
-        py: { xs: 2.5, sm: 3.5 },
-        background: 'linear-gradient(145deg, var(--bg-top) 0%, var(--bg-middle) 52%, var(--bg-bottom) 100%)',
-        border: '1px solid rgba(6, 42, 63, 0.08)',
-        boxShadow: '0 32px 55px -38px rgba(16, 36, 53, 0.55)',
+        px: { xs: 0.2, sm: 0.4 },
+        py: 0.5,
       }}
     >
       <Stack spacing={2.5}>
