@@ -191,7 +191,7 @@ export default function Home() {
         simple: {
           positiveAmount: 0,
           positiveRate: 0,
-          label: 'Sem receita no mes',
+          label: 'Sem receita no mês',
           emoji: '😶',
           color: '#ffd8cf',
         },
@@ -201,7 +201,7 @@ export default function Home() {
           nonInvestmentRate: 0,
           expectedSpentRate: 0,
           monthProgress,
-          label: 'Nao ha dados de receita para analise detalhada.',
+          label: 'Não há dados de receita para análise detalhada.',
         },
       };
     }
@@ -234,14 +234,14 @@ export default function Home() {
       simpleEmoji = '😟';
       simpleColor = '#ffe7d1';
     } else {
-      simpleLabel = 'Atencao: negativo alto';
+      simpleLabel = 'Atenção: negativo alto';
       simpleEmoji = '😣';
       simpleColor = '#ffd8cf';
     }
 
     const paceDiff = spentRate - expectedSpentRate;
     const paceLabel = paceDiff <= 5 ? 'ritmo de gastos controlado' : 'ritmo de gastos acima do esperado';
-    const complexLabel = `Voce ja gastou ${spentRate.toFixed(0)}% da receita no mes. Desse total, ${investmentRate.toFixed(0)}% foi investimento. Hoje, ${paceLabel}.`;
+    const complexLabel = `Você já gastou ${spentRate.toFixed(0)}% da receita no mês. Desse total, ${investmentRate.toFixed(0)}% foi investimento. Hoje, ${paceLabel}.`;
 
     return {
       simple: {
@@ -464,7 +464,7 @@ export default function Home() {
                     <Stack spacing={1}>
                       <Stack direction='row' alignItems='center' justifyContent='space-between'>
                         <Typography sx={{ fontSize: 15, fontWeight: 700, color: '#123047' }}>
-                          Consumo do orÃ§amento
+                          Consumo do orçamento
                         </Typography>
                         <Typography sx={{ fontSize: 15, fontWeight: 700, color: '#19536e' }}>
                           {showValues ? `${budgetUsage.toFixed(0)}%` : '****'}
@@ -511,7 +511,7 @@ export default function Home() {
                   <StatCard
                     title='Investimentos'
                     value={valueOrMask(monthlyInvestments.realInvestments)}
-                    subtitle='Aplicado atÃ© agora'
+                    subtitle='Aplicado até agora'
                     icon={<SavingsRoundedIcon />}
                     accent='#176c6f'
                     delay='280ms'
@@ -519,7 +519,7 @@ export default function Home() {
                   <StatCard
                     title='Investimento planejado'
                     value={valueOrMask(monthlyInvestments.plannedInvestments)}
-                    subtitle='Meta total do mÃªs'
+                    subtitle='Meta total do mês'
                     icon={<InsightsRoundedIcon />}
                     accent='#3f5e91'
                     delay='340ms'
@@ -564,7 +564,7 @@ export default function Home() {
                         />
                       </Stack>
                       <Typography sx={{ mt: 0.5, mb: 1.2, fontSize: 13, color: '#607d92' }}>
-                        MovimentaÃ§Ãµes lanÃ§adas na data selecionada.
+                        Movimentações lançadas na data selecionada.
                       </Typography>
                       {expensesOfSelectedDate.length > 0 ? (
                         <ExpensesOfDay expensesOfDay={expensesOfSelectedDate} />
@@ -591,7 +591,7 @@ export default function Home() {
                         Despesas por categoria
                       </Typography>
                       <Typography sx={{ mt: 0.5, mb: 1.2, fontSize: 13, color: '#607d92' }}>
-                        Leia rapidamente onde estÃ¡ indo a maior parte dos gastos.
+                        Leia rapidamente onde está indo a maior parte dos gastos.
                       </Typography>
                       <Box
                         sx={{
