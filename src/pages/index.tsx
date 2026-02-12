@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from 'react';
+﻿import React, { useContext, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -145,8 +145,9 @@ export default function Home() {
   }, [invoices, monthlyExpenses, monthlyRevenues]);
 
   const asWeAre = useMemo(() => {
-    return monthlyRevenues - monthlyExpenses - monthlyInvestments.realInvestments;
-  }, [monthlyExpenses, monthlyInvestments.realInvestments, monthlyRevenues]);
+    // monthlyExpenses ja considera investimentos cadastrados como despesa.
+    return monthlyRevenues - monthlyExpenses;
+  }, [monthlyExpenses, monthlyRevenues]);
 
   const monthLabel = useMemo(() => {
     return new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(dateToAnalyze.toDate());
@@ -157,9 +158,9 @@ export default function Home() {
       return 0;
     }
 
-    const usage = ((monthlyExpenses + monthlyInvestments.realInvestments) / monthlyRevenues) * 100;
+    const usage = (monthlyExpenses / monthlyRevenues) * 100;
     return Math.max(0, Math.min(usage, 100));
-  }, [monthlyExpenses, monthlyInvestments.realInvestments, monthlyRevenues]);
+  }, [monthlyExpenses, monthlyRevenues]);
 
   const monthProgress = useMemo(() => {
     const selectedDate = dateToAnalyze.toDate();
@@ -184,47 +185,81 @@ export default function Home() {
     return (currentDay / daysInMonth) * 100;
   }, [dateToAnalyze]);
 
-  const financialWellness = useMemo(() => {
+  const financialAnalysis = useMemo(() => {
     if (monthlyRevenues <= 0) {
       return {
-        score: 0,
-        label: 'Sem receita no mês',
-        emoji: '😶',
-        color: '#ffd8cf',
-        expenseRate: 0,
-        investmentRate: 0,
-        expectedExpenseRate: 0,
-        monthProgress,
+        simple: {
+          positiveAmount: 0,
+          positiveRate: 0,
+          label: 'Sem receita no mes',
+          emoji: '😶',
+          color: '#ffd8cf',
+        },
+        complex: {
+          spentRate: 0,
+          investmentRate: 0,
+          nonInvestmentRate: 0,
+          expectedSpentRate: 0,
+          monthProgress,
+          label: 'Nao ha dados de receita para analise detalhada.',
+        },
       };
     }
 
-    // Referência prática: despesas até 70%, investimentos em torno de 20% e folga de caixa de 10%.
-    const expenseRate = (monthlyExpenses / monthlyRevenues) * 100;
+    const positiveAmount = asWeAre;
+    const positiveRate = (positiveAmount / monthlyRevenues) * 100;
+    const spentRate = (monthlyExpenses / monthlyRevenues) * 100;
     const investmentRate = (monthlyInvestments.realInvestments / monthlyRevenues) * 100;
-    const freeCashRate = (asWeAre / monthlyRevenues) * 100;
-    const expectedExpenseRate = (70 * monthProgress) / 100;
+    const nonInvestmentRate = Math.max(0, spentRate - investmentRate);
+    const expectedSpentRate = monthProgress;
 
-    const expenseScore = Math.max(0, Math.min(100, ((70 - expenseRate) / 70) * 100));
-    const investmentScore = Math.max(0, Math.min(100, (investmentRate / 20) * 100));
-    const freeCashScore = Math.max(0, Math.min(100, ((freeCashRate + 10) / 20) * 100));
+    let simpleLabel = 'No limite';
+    let simpleEmoji = '😐';
+    let simpleColor = '#fff3d4';
 
-    const paceTolerance = 8;
-    const paceOverflow = expenseRate - (expectedExpenseRate + paceTolerance);
-    const paceScore = monthProgress >= 100
-      ? expenseScore
-      : Math.max(0, Math.min(100, 100 - Math.max(0, paceOverflow) * 4));
+    if (positiveRate >= 20) {
+      simpleLabel = 'Saldo bem positivo';
+      simpleEmoji = '😁';
+      simpleColor = '#d4ffe2';
+    } else if (positiveRate >= 10) {
+      simpleLabel = 'Saldo positivo';
+      simpleEmoji = '🙂';
+      simpleColor = '#dfffe9';
+    } else if (positiveRate >= 0) {
+      simpleLabel = 'Saldo curto, mas positivo';
+      simpleEmoji = '😌';
+      simpleColor = '#fff3d4';
+    } else if (positiveRate >= -10) {
+      simpleLabel = 'Saldo negativo';
+      simpleEmoji = '😟';
+      simpleColor = '#ffe7d1';
+    } else {
+      simpleLabel = 'Atencao: negativo alto';
+      simpleEmoji = '😣';
+      simpleColor = '#ffd8cf';
+    }
 
-    const score = Math.max(
-      0,
-      Math.min(100, expenseScore * 0.3 + investmentScore * 0.25 + freeCashScore * 0.15 + paceScore * 0.3)
-    );
+    const paceDiff = spentRate - expectedSpentRate;
+    const paceLabel = paceDiff <= 5 ? 'ritmo de gastos controlado' : 'ritmo de gastos acima do esperado';
+    const complexLabel = `Voce ja gastou ${spentRate.toFixed(0)}% da receita no mes. Desse total, ${investmentRate.toFixed(0)}% foi investimento. Hoje, ${paceLabel}.`;
 
-    if (score >= 85) return { score, label: 'Excelente equilíbrio', emoji: '😁', color: '#d4ffe2', expenseRate, investmentRate, expectedExpenseRate, monthProgress };
-    if (score >= 70) return { score, label: 'Bom equilíbrio', emoji: '🙂', color: '#dfffe9', expenseRate, investmentRate, expectedExpenseRate, monthProgress };
-    if (score >= 55) return { score, label: 'Atenção aos gastos', emoji: '😐', color: '#fff3d4', expenseRate, investmentRate, expectedExpenseRate, monthProgress };
-    if (score >= 40) return { score, label: 'Risco de aperto', emoji: '😟', color: '#ffe7d1', expenseRate, investmentRate, expectedExpenseRate, monthProgress };
-
-    return { score, label: 'Ajuste urgente', emoji: '😣', color: '#ffd8cf', expenseRate, investmentRate, expectedExpenseRate, monthProgress };
+    return {
+      simple: {
+        positiveAmount,
+        positiveRate,
+        label: simpleLabel,
+        emoji: simpleEmoji,
+        color: simpleColor,
+      },
+      complex: {
+        spentRate,
+        investmentRate,
+        nonInvestmentRate,
+        expectedSpentRate,
+        monthProgress,
+        label: complexLabel,
+      },
+    };
   }, [asWeAre, monthProgress, monthlyExpenses, monthlyInvestments.realInvestments, monthlyRevenues]);
 
   const practicalExample = useMemo(() => {
@@ -232,9 +267,9 @@ export default function Home() {
 
     return {
       baseRevenue,
-      expensesIdeal: baseRevenue * 0.7,
+      expensesIdeal: baseRevenue * 0.8,
       investmentsIdeal: baseRevenue * 0.2,
-      freeAmountIdeal: baseRevenue * 0.1,
+      freeAmountIdeal: baseRevenue * 0.2,
       usesUserRevenue: monthlyRevenues > 0,
     };
   }, [monthlyRevenues]);
@@ -325,16 +360,16 @@ export default function Home() {
                             mt: 0.2,
                             fontSize: { xs: 30, sm: 38 },
                             fontWeight: 800,
-                            color: financialWellness.color,
+                            color: financialAnalysis.simple.color,
                           }}
                         >
-                          {showValues ? `${asWeAre > 0 ? '+' : ''}${formatterCurrency(asWeAre)} ${financialWellness.emoji}` : '****'}
+                          {showValues ? `${asWeAre > 0 ? '+' : ''}${formatterCurrency(asWeAre)} ${financialAnalysis.simple.emoji}` : '****'}
                         </Typography>
                         {showValues && (
                           <>
                             <Stack direction='row' spacing={0.6} alignItems='center' sx={{ mt: 0.25 }}>
                               <Typography sx={{ fontSize: 11.5, opacity: 0.8 }}>
-                                Nota geral: {financialWellness.score.toFixed(0)}% · {financialWellness.label}
+                                Análise simples: {financialAnalysis.simple.positiveRate.toFixed(0)}% da receita livre · {financialAnalysis.simple.label}
                               </Typography>
                               <IconButton
                                 size='small'
@@ -355,22 +390,19 @@ export default function Home() {
                                 }}
                               >
                                 <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: '#d9f7ff' }}>
-                                  O que essa nota significa?
+                                  Como ler este resumo?
                                 </Typography>
                                 <Typography sx={{ mt: 0.45, fontSize: 12, opacity: 0.9 }}>
-                                  Essa nota mostra a saúde do seu mês: quanto menores os gastos e quanto maior o investimento, melhor.
+                                  Análise simples: considera apenas o quanto sobrou positivo no mês em relação à receita.
                                 </Typography>
                                 <Typography sx={{ mt: 0.35, fontSize: 12, opacity: 0.9 }}>
-                                  Nota ruim: abaixo de 55% · Nota mediana: de 55% até 84% · Nota excelente: 85% ou mais.
+                                  Agora: {formatterCurrency(financialAnalysis.simple.positiveAmount)} ({financialAnalysis.simple.positiveRate.toFixed(0)}% da receita).
                                 </Typography>
                                 <Typography sx={{ mt: 0.35, fontSize: 12, opacity: 0.9 }}>
-                                  {practicalExample.usesUserRevenue ? 'Exemplo com sua receita do mês' : 'Exemplo com receita de R$ 10.000'} ({formatterCurrency(practicalExample.baseRevenue)}): ideal seria gastar até {formatterCurrency(practicalExample.expensesIdeal)} (70%), investir cerca de {formatterCurrency(practicalExample.investmentsIdeal)} (20%) e manter {formatterCurrency(practicalExample.freeAmountIdeal)} livres (10%).
+                                  Análise complexa: {financialAnalysis.complex.label}
                                 </Typography>
                                 <Typography sx={{ mt: 0.35, fontSize: 12, opacity: 0.9 }}>
-                                  Hoje: Gastos {financialWellness.expenseRate.toFixed(0)}% da receita · Investimentos {financialWellness.investmentRate.toFixed(0)}% da receita.
-                                </Typography>
-                                <Typography sx={{ mt: 0.35, fontSize: 12, opacity: 0.9 }}>
-                                  Ritmo do mês: já passou {financialWellness.monthProgress.toFixed(0)}% do mês, então o ideal seria ter gasto até cerca de {financialWellness.expectedExpenseRate.toFixed(0)}% da receita.
+                                  {practicalExample.usesUserRevenue ? 'Exemplo com sua receita do mês' : 'Exemplo com receita de R$ 10.000'} ({formatterCurrency(practicalExample.baseRevenue)}): investir {formatterCurrency(practicalExample.investmentsIdeal)} (20%), gastos totais até {formatterCurrency(practicalExample.expensesIdeal)} (80%) e saldo positivo de pelo menos {formatterCurrency(practicalExample.freeAmountIdeal)} (20%).
                                 </Typography>
                               </Box>
                             </Collapse>
@@ -432,7 +464,7 @@ export default function Home() {
                     <Stack spacing={1}>
                       <Stack direction='row' alignItems='center' justifyContent='space-between'>
                         <Typography sx={{ fontSize: 15, fontWeight: 700, color: '#123047' }}>
-                          Consumo do orçamento
+                          Consumo do orÃ§amento
                         </Typography>
                         <Typography sx={{ fontSize: 15, fontWeight: 700, color: '#19536e' }}>
                           {showValues ? `${budgetUsage.toFixed(0)}%` : '****'}
@@ -479,7 +511,7 @@ export default function Home() {
                   <StatCard
                     title='Investimentos'
                     value={valueOrMask(monthlyInvestments.realInvestments)}
-                    subtitle='Aplicado até agora'
+                    subtitle='Aplicado atÃ© agora'
                     icon={<SavingsRoundedIcon />}
                     accent='#176c6f'
                     delay='280ms'
@@ -487,7 +519,7 @@ export default function Home() {
                   <StatCard
                     title='Investimento planejado'
                     value={valueOrMask(monthlyInvestments.plannedInvestments)}
-                    subtitle='Meta total do mês'
+                    subtitle='Meta total do mÃªs'
                     icon={<InsightsRoundedIcon />}
                     accent='#3f5e91'
                     delay='340ms'
@@ -532,7 +564,7 @@ export default function Home() {
                         />
                       </Stack>
                       <Typography sx={{ mt: 0.5, mb: 1.2, fontSize: 13, color: '#607d92' }}>
-                        Movimentações lançadas na data selecionada.
+                        MovimentaÃ§Ãµes lanÃ§adas na data selecionada.
                       </Typography>
                       {expensesOfSelectedDate.length > 0 ? (
                         <ExpensesOfDay expensesOfDay={expensesOfSelectedDate} />
@@ -559,7 +591,7 @@ export default function Home() {
                         Despesas por categoria
                       </Typography>
                       <Typography sx={{ mt: 0.5, mb: 1.2, fontSize: 13, color: '#607d92' }}>
-                        Leia rapidamente onde está indo a maior parte dos gastos.
+                        Leia rapidamente onde estÃ¡ indo a maior parte dos gastos.
                       </Typography>
                       <Box
                         sx={{
@@ -583,6 +615,7 @@ export default function Home() {
     </>
   );
 }
+
 
 
 

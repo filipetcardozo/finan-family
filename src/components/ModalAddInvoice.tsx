@@ -339,19 +339,46 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
           {invoice && invoice.id ? 'Alterar despesa' : 'Inserir despesa'}
         </DialogTitle>
         <form onSubmit={formExpense.handleSubmit}>
-          <DialogContent sx={{ pt: 0.8, pb: 1.2 }}>
-            <Stack spacing={2}>
+          <DialogContent sx={{ pt: 0.45, pb: 0.9 }}>
+            <Stack spacing={0.8}>
             <FormControl fullWidth size='small'>
               <Autocomplete
                 options={expenseCategories}
                 getOptionLabel={(option) => option.label}
                 groupBy={(option) => option.group}
+                ListboxProps={{
+                  style: {
+                    paddingTop: 4,
+                    paddingBottom: 4,
+                  },
+                }}
+                renderOption={(props, option) => (
+                  <li
+                    {...props}
+                    style={{
+                      ...props.style,
+                      minHeight: 32,
+                      paddingTop: 4,
+                      paddingBottom: 4,
+                      fontSize: 13,
+                    }}
+                  >
+                    {option.label}
+                  </li>
+                )}
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    label="Categoria da despesa"
+                    label='Categoria'
                     variant="outlined"
                     size="small"
+                    InputLabelProps={{
+                      sx: {
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      },
+                    }}
                   />
                 )}
                 onChange={(event, value) => formExpense.setFieldValue('invoiceCategory', value ? value.label : '')}
@@ -409,12 +436,39 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
               <Autocomplete
                 options={revenueCategories}
                 getOptionLabel={(option) => option.label}
+                ListboxProps={{
+                  style: {
+                    paddingTop: 4,
+                    paddingBottom: 4,
+                  },
+                }}
+                renderOption={(props, option) => (
+                  <li
+                    {...props}
+                    style={{
+                      ...props.style,
+                      minHeight: 32,
+                      paddingTop: 4,
+                      paddingBottom: 4,
+                      fontSize: 13,
+                    }}
+                  >
+                    {option.label}
+                  </li>
+                )}
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    label="Categoria da receita"
+                    label='Categoria'
                     variant="outlined"
                     size="small"
+                    InputLabelProps={{
+                      sx: {
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      },
+                    }}
                   />
                 )}
                 onChange={(event, value) => formRevenue.setFieldValue('revenueCategory', value ? value.label : '')}
