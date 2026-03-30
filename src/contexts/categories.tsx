@@ -46,6 +46,8 @@ type CategoriesContextType = {
   reorderRevenueCategories(activeId: string, overId: string): Promise<void>;
   reorderExpenseGroups(activeId: string, overId: string): Promise<void>;
   reorderRevenueGroups(activeId: string, overId: string): Promise<void>;
+  updateExpenseOrganization(categories: CategoryOption[], groupOrder: string[]): Promise<void>;
+  updateRevenueOrganization(categories: CategoryOption[], groupOrder: string[]): Promise<void>;
 };
 
 const defaultState: CategoriesContextType = {
@@ -66,6 +68,8 @@ const defaultState: CategoriesContextType = {
   reorderRevenueCategories: async () => undefined,
   reorderExpenseGroups: async () => undefined,
   reorderRevenueGroups: async () => undefined,
+  updateExpenseOrganization: async () => undefined,
+  updateRevenueOrganization: async () => undefined,
 };
 
 export const CategoriesContext = createContext<CategoriesContextType>(defaultState);
@@ -293,6 +297,42 @@ export const CategoriesProvider: React.FC<Props> = ({ children }) => {
     setRevenueGroupOrder(nextRevenueGroupOrder);
   };
 
+  const updateExpenseOrganization = async (
+    nextExpenseCategories: CategoryOption[],
+    nextExpenseGroupOrder: string[],
+  ) => {
+    if (!uid) {
+      return;
+    }
+
+    await persistCategories(
+      nextExpenseCategories,
+      revenueCategories,
+      nextExpenseGroupOrder,
+      revenueGroupOrder,
+    );
+    setExpenseCategories(nextExpenseCategories);
+    setExpenseGroupOrder(nextExpenseGroupOrder);
+  };
+
+  const updateRevenueOrganization = async (
+    nextRevenueCategories: CategoryOption[],
+    nextRevenueGroupOrder: string[],
+  ) => {
+    if (!uid) {
+      return;
+    }
+
+    await persistCategories(
+      expenseCategories,
+      nextRevenueCategories,
+      expenseGroupOrder,
+      nextRevenueGroupOrder,
+    );
+    setRevenueCategories(nextRevenueCategories);
+    setRevenueGroupOrder(nextRevenueGroupOrder);
+  };
+
   const hasCustomExpenseCategories = expenseCategories.length > 0;
   const hasCustomRevenueCategories = revenueCategories.length > 0;
 
@@ -339,6 +379,8 @@ export const CategoriesProvider: React.FC<Props> = ({ children }) => {
       reorderRevenueCategories,
       reorderExpenseGroups,
       reorderRevenueGroups,
+      updateExpenseOrganization,
+      updateRevenueOrganization,
     }),
     [
       expenseCategories,
@@ -358,6 +400,8 @@ export const CategoriesProvider: React.FC<Props> = ({ children }) => {
       reorderRevenueCategories,
       reorderExpenseGroups,
       reorderRevenueGroups,
+      updateExpenseOrganization,
+      updateRevenueOrganization,
     ],
   );
 

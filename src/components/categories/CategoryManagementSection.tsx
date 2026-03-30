@@ -41,6 +41,7 @@ type CategoryManagementSectionProps = {
   title: string;
   groups: CategoryManagementGroup[];
   emptyText: string;
+  headerAction?: React.ReactNode;
   onAdd?(category: CategoryOption): void;
   onCreateInGroup?(group: string): void;
   onDelete?(label: string): void;
@@ -52,6 +53,7 @@ export function CategoryManagementSection({
   title,
   groups,
   emptyText,
+  headerAction,
   onAdd,
   onCreateInGroup,
   onDelete,
@@ -119,7 +121,10 @@ export function CategoryManagementSection({
 
   return (
     <Stack spacing={1.5}>
-      <Typography sx={{ fontWeight: 700, color: '#123047' }}>{title}</Typography>
+      <Stack direction='row' alignItems='center' justifyContent='space-between' spacing={1}>
+        <Typography sx={{ fontWeight: 700, color: '#123047' }}>{title}</Typography>
+        {headerAction}
+      </Stack>
 
       {groups.length > 0 ? (
         <DndContext sensors={groupSensors} collisionDetection={closestCenter} onDragEnd={handleGroupDragEnd}>
