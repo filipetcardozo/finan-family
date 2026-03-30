@@ -25,6 +25,7 @@ export function SortableCategoryGroup({ id, label, children }: SortableCategoryG
         borderRadius: 2.5,
         px: 1,
         py: 0.75,
+        WebkitTapHighlightColor: 'transparent',
         transition: 'background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease',
         '&:hover': {
           backgroundColor: 'rgba(15, 106, 114, 0.06)',
@@ -45,6 +46,9 @@ export function SortableCategoryGroup({ id, label, children }: SortableCategoryG
           borderRadius: 2,
           px: 0.25,
           py: 0.25,
+          touchAction: 'none',
+          WebkitUserSelect: 'none',
+          userSelect: 'none',
           '&:active': {
             cursor: 'grabbing',
             transform: 'scale(0.995)',

@@ -1,5 +1,5 @@
 import React, { createContext, useEffect, useMemo, useState } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { database } from '../../firebaseConfig';
 import {
   defaultExpenseCategories,
@@ -110,34 +110,28 @@ export const CategoriesProvider: React.FC<Props> = ({ children }) => {
   };
 
   useEffect(() => {
-    let active = true;
-
     if (!uid) {
       setExpenseCategories([]);
       setRevenueCategories([]);
       setExpenseGroupOrder([]);
       setRevenueGroupOrder([]);
       setLoadingCategories(false);
-      return () => {
-        active = false;
-      };
+      return undefined;
     }
 
     setLoadingCategories(true);
 
     const categoriesRef = doc(database, 'userSettings', uid);
 
-    getDoc(categoriesRef)
-      .then(snapshot => {
-        if (!active) {
-          return;
-        }
-
+    const unsubscribe = onSnapshot(
+      categoriesRef,
+      snapshot => {
         if (!snapshot.exists()) {
           setExpenseCategories([]);
           setRevenueCategories([]);
           setExpenseGroupOrder(normalizeGroupOrder([], defaultExpenseCategories, 'expense'));
           setRevenueGroupOrder(normalizeGroupOrder([], defaultRevenueCategories, 'revenue'));
+          setLoadingCategories(false);
           return;
         }
 
@@ -161,26 +155,18 @@ export const CategoriesProvider: React.FC<Props> = ({ children }) => {
             'revenue',
           ),
         );
-      })
-      .catch(() => {
-        if (!active) {
-          return;
-        }
-
+        setLoadingCategories(false);
+      },
+      () => {
         setExpenseCategories([]);
         setRevenueCategories([]);
         setExpenseGroupOrder(normalizeGroupOrder([], defaultExpenseCategories, 'expense'));
         setRevenueGroupOrder(normalizeGroupOrder([], defaultRevenueCategories, 'revenue'));
-      })
-      .finally(() => {
-        if (active) {
-          setLoadingCategories(false);
-        }
-      });
+        setLoadingCategories(false);
+      },
+    );
 
-    return () => {
-      active = false;
-    };
+    return () => unsubscribe();
   }, [uid]);
 
   const addExpenseCategory = async (category: CategoryOption) => {

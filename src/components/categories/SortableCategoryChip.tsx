@@ -22,6 +22,10 @@ export function SortableCategoryChip({ id, label, onDelete }: SortableCategoryCh
       sx={{
         display: 'inline-flex',
         opacity: isDragging ? 0.72 : 1,
+        touchAction: 'none',
+        WebkitTapHighlightColor: 'transparent',
+        WebkitUserSelect: 'none',
+        userSelect: 'none',
       }}
     >
       <Chip
@@ -35,6 +39,7 @@ export function SortableCategoryChip({ id, label, onDelete }: SortableCategoryCh
           borderRadius: 2,
           cursor: 'grab',
           transition: 'background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease',
+          touchAction: 'none',
           '&:hover': {
             backgroundColor: '#168970',
             boxShadow: '0 0 0 1px rgba(8, 43, 67, 0.08)',
