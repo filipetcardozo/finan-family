@@ -7,6 +7,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { ExpensesProvider } from '../contexts/expenses';
 import { RevenuesProvider } from '../contexts/revenues';
 import { MobileProvider } from '../contexts/isMobileContext';
+import { CategoriesProvider } from '../contexts/categories';
 
 const theme = createTheme({
   palette: {
@@ -39,11 +40,13 @@ function MyApp({ Component, pageProps }: AppProps) {
       <MobileProvider>
         <SnackbarProvider maxSnack={3}>
           <MonthSelectedProvider>
-            <RevenuesProvider>
-              <ExpensesProvider>
-                <Component {...pageProps} />
-              </ExpensesProvider>
-            </RevenuesProvider>
+            <CategoriesProvider>
+              <RevenuesProvider>
+                <ExpensesProvider>
+                  <Component {...pageProps} />
+                </ExpensesProvider>
+              </RevenuesProvider>
+            </CategoriesProvider>
           </MonthSelectedProvider>
         </SnackbarProvider>
       </MobileProvider>

@@ -18,10 +18,10 @@ import {
 import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
 import ArrowBackIosNewRoundedIcon from '@mui/icons-material/ArrowBackIosNewRounded';
 import ArrowForwardIosRoundedIcon from '@mui/icons-material/ArrowForwardIosRounded';
-import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
+import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 import TrendingDownRoundedIcon from '@mui/icons-material/TrendingDownRounded';
 import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
 import { useRouter } from 'next/router';
@@ -30,7 +30,7 @@ import { useAuth } from '../hooks/useAuth';
 
 type NavigationItem = {
     label: string;
-    path: '/' | '/expenses' | '/revenues';
+    path: '/' | '/expenses' | '/revenues' | '/settings';
     icon: React.ReactNode;
 };
 
@@ -38,6 +38,7 @@ const navigationItems: NavigationItem[] = [
     { label: 'Home', path: '/', icon: <HomeRoundedIcon fontSize='small' /> },
     { label: 'Despesas', path: '/expenses', icon: <TrendingDownRoundedIcon fontSize='small' /> },
     { label: 'Receitas', path: '/revenues', icon: <TrendingUpRoundedIcon fontSize='small' /> },
+    { label: 'Configurações', path: '/settings', icon: <SettingsRoundedIcon fontSize='small' /> },
 ];
 
 export const AppBar: React.FC = () => {

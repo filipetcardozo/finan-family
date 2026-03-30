@@ -15,7 +15,7 @@ import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 
 type Props = {
   children: ReactNode;
-  tabSelected: '/' | '/expenses' | '/revenues' | undefined;
+  tabSelected: '/' | '/expenses' | '/revenues' | '/settings' | undefined;
 }
 
 export const LayoutMobile = ({ children, tabSelected }: Props) => {

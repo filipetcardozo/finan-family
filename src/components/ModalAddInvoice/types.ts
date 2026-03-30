@@ -1,9 +1,7 @@
 import type { Dayjs } from 'dayjs';
+import type { CategoryOption as AppCategoryOption } from '../../constants/categories';
 
-export type CategoryOption = {
-  label: string;
-  group?: string;
-};
+export type CategoryOption = AppCategoryOption;
 
 export type TransactionFormValues = {
   addDate: Dayjs | null;

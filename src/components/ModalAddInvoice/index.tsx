@@ -7,9 +7,11 @@ import { useFormik } from 'formik';
 import 'dayjs/locale/pt-br';
 import { useSnackbar } from 'notistack';
 import { useAuth } from '../../hooks/useAuth';
+import { CategoriesContext } from '../../contexts/categories';
 import { MonthSelectedContext } from '../../contexts/monthSelected';
 import { ExpensesContext } from '../../contexts/expenses';
 import { RevenuesContext } from '../../contexts/revenues';
+import { getCategoryGroupLabel } from '../../utils/categoryGroupLabels';
 import type { IInvoice } from '../../providers/invoices/types';
 import { putInvoice, updateInvoice } from '../../providers/invoices/services';
 import type { IRevenue } from '../../providers/revenues/types';
@@ -17,10 +19,8 @@ import { putRevenue, updateRevenue } from '../../providers/revenues/services';
 import { TabPanel } from './TabPanel';
 import { TransactionFormSection } from './TransactionFormSection';
 import {
-  expenseCategories,
   getDefaultAddDateBySelectedMonth,
   primaryActionSx,
-  revenueCategories,
   secondaryActionSx,
 } from './constants';
 
@@ -35,6 +35,7 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
   const { uid } = useAuth();
   const { enqueueSnackbar } = useSnackbar();
   const { dateToAnalyze } = useContext(MonthSelectedContext);
+  const { expenseCategoryOptions, revenueCategoryOptions } = useContext(CategoriesContext);
 
   const { handleAddInvoice, handleUpdateInvoice } = useContext(ExpensesContext);
   const { handleAddRevenue, handleUpdateRevenue } = useContext(RevenuesContext);
@@ -233,6 +234,13 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
     setTabSelected(newValue);
   };
 
+  const expenseGroupBy = expenseCategoryOptions.some(option => option.group)
+    ? (option: { group?: string }) => getCategoryGroupLabel(option.group) || 'Sem grupo'
+    : undefined;
+  const revenueGroupBy = revenueCategoryOptions.some(option => option.group)
+    ? (option: { group?: string }) => getCategoryGroupLabel(option.group) || 'Sem grupo'
+    : undefined;
+
   const a11yProps = (index: number) => ({
     id: `tab-${index}`,
     'aria-controls': `tabpanel-${index}`,
@@ -286,10 +294,10 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
             onSubmit={formExpense.handleSubmit}
             dialogContentSx={{ pt: 2, pb: 1 }}
             stackSpacing={2}
-            categoryOptions={expenseCategories}
+            categoryOptions={expenseCategoryOptions}
             categoryValue={formExpense.values.invoiceCategory}
             onCategoryChange={(value) => formExpense.setFieldValue('invoiceCategory', value)}
-            groupBy={(option) => option.group || ''}
+            groupBy={expenseGroupBy}
             loading={loadingButton}
             submitLabel={invoice && invoice.id ? 'Atualizar' : 'Inserir'}
             handleClose={handleClose}
@@ -305,9 +313,10 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
             onSubmit={formRevenue.handleSubmit}
             dialogContentSx={{ pt: 2, pb: 1 }}
             stackSpacing={2}
-            categoryOptions={revenueCategories}
+            categoryOptions={revenueCategoryOptions}
             categoryValue={formRevenue.values.revenueCategory}
             onCategoryChange={(value) => formRevenue.setFieldValue('revenueCategory', value)}
+            groupBy={revenueGroupBy}
             loading={loadingButton}
             submitLabel={revenue && revenue.id ? 'Atualizar' : 'Inserir'}
             handleClose={handleClose}
