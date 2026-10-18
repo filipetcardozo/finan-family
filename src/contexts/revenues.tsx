@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import React from 'react';
 import { IRevenue } from '../providers/revenues/types';
-import { useMemo, useState, useEffect, useContext } from 'react';
+import { useMemo, useState, useEffect, useContext, useRef } from 'react';
 import { deleteRevenue, getUserRevenues } from '../providers/revenues/services';
 import { MonthSelectedContext } from './monthSelected';
 import { useAuth } from '../hooks/useAuth';
@@ -13,6 +13,7 @@ interface ContextType {
   handleUpdateRevenue: (newRevenue: IRevenue) => void;
   handleDeleteRevenue: (revenueId: string) => Promise<void>;
   handleAddRevenue: (newRevenue: IRevenue) => void;
+  handleAddRevenues: (newRevenues: IRevenue[]) => void;
   expensesOfDay: IRevenue[] | [];
 }
 
@@ -23,6 +24,7 @@ const defaultState = {
   handleUpdateRevenue: (newRevenue: IRevenue) => { },
   handleDeleteRevenue: async (revenueId: string) => { },
   handleAddRevenue: (newRevenue: IRevenue) => { },
+  handleAddRevenues: (newRevenues: IRevenue[]) => { },
   expensesOfDay: []
 }
 
@@ -35,17 +37,21 @@ export const RevenuesProvider = ({ children }: any) => {
   const [loadingGetRevenues, setLoadingGetRevenues] = useState(true);
 
   const { dateToAnalyze } = useContext(MonthSelectedContext);
+  const selectedMonthRef = useRef(dateToAnalyze.format('MM/YYYY'));
+  selectedMonthRef.current = dateToAnalyze.format('MM/YYYY');
 
   useEffect(() => {
+    let cancelled = false;
     if (uid) {
       setLoadingGetRevenues(true);
       getUserRevenues(uid, dateToAnalyze.format('MM/YYYY').toString())
         .then((data) => {
-          setRevenues(data);
+          if (!cancelled) setRevenues(data);
         })
         .catch(err => console.log(err))
-        .finally(() => setLoadingGetRevenues(false));
+        .finally(() => { if (!cancelled) setLoadingGetRevenues(false); });
     }
+    return () => { cancelled = true; };
   }, [uid, dateToAnalyze]);
 
   const monthlyRevenues = useMemo(() => {
@@ -91,14 +97,16 @@ export const RevenuesProvider = ({ children }: any) => {
     setRevenues(newArray);
   }
 
-  const handleAddRevenue = (newRevenue: IRevenue) => {
-    if (newRevenue.addDateFormatted === dateToAnalyze.format('MM/YYYY')) {
-      let newArray = [...revenues];
-      newArray.push(newRevenue);
+  const handleAddRevenues = (newRevenues: IRevenue[]) => {
+    setRevenues(previous => {
+      const additions = newRevenues.filter(revenue => revenue.addDateFormatted === selectedMonthRef.current);
+      const merged = new Map(previous.map(revenue => [revenue.id, revenue]));
+      additions.forEach(revenue => merged.set(revenue.id, revenue));
+      return Array.from(merged.values());
+    });
+  };
 
-      setRevenues(newArray);
-    }
-  }
+  const handleAddRevenue = (newRevenue: IRevenue) => handleAddRevenues([newRevenue]);
 
   return (
     <RevenuesContext.Provider value={{
@@ -108,6 +116,7 @@ export const RevenuesProvider = ({ children }: any) => {
       handleUpdateRevenue,
       handleDeleteRevenue,
       handleAddRevenue,
+      handleAddRevenues,
       expensesOfDay
     }}>
       {children}

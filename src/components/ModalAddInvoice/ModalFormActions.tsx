@@ -10,6 +10,7 @@ interface ModalFormActionsProps {
   submitLabel: string;
   secondaryActionSx: SxProps<Theme>;
   primaryActionSx: SxProps<Theme>;
+  disabled?: boolean;
 }
 
 export function ModalFormActions({
@@ -18,13 +19,14 @@ export function ModalFormActions({
   submitLabel,
   secondaryActionSx,
   primaryActionSx,
+  disabled,
 }: ModalFormActionsProps) {
   return (
     <DialogActions sx={{ px: 3, pb: 2.2, pt: 1.2 }}>
-      <Button size="small" variant="outlined" onClick={handleClose} sx={secondaryActionSx}>
+      <Button size="small" variant="outlined" onClick={handleClose} disabled={loading} sx={secondaryActionSx}>
         Voltar
       </Button>
-      <LoadingButton type="submit" variant="contained" size="small" loading={loading} sx={primaryActionSx}>
+      <LoadingButton type="submit" variant="contained" size="small" loading={loading} disabled={disabled} sx={primaryActionSx}>
         {submitLabel}
       </LoadingButton>
     </DialogActions>

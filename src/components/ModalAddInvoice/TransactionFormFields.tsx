@@ -16,6 +16,7 @@ interface TransactionFormFieldsProps<T extends TransactionFormValues> {
   categoryValue: string;
   onCategoryChange(value: string): void;
   groupBy?: (option: CategoryOption) => string;
+  valueLabel?: string;
 }
 
 export function TransactionFormFields<T extends TransactionFormValues>({
@@ -25,6 +26,7 @@ export function TransactionFormFields<T extends TransactionFormValues>({
   categoryValue,
   onCategoryChange,
   groupBy,
+  valueLabel,
 }: TransactionFormFieldsProps<T>) {
   return (
     <Stack spacing={stackSpacing}>
@@ -35,7 +37,7 @@ export function TransactionFormFields<T extends TransactionFormValues>({
         groupBy={groupBy}
       />
 
-      <CurrencyInput nameOfKeyValue="value" form={form} />
+      <CurrencyInput nameOfKeyValue="value" form={form} label={valueLabel} />
 
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-BR">
         <MobileDatePicker

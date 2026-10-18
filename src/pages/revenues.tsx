@@ -23,6 +23,7 @@ import dayjs from 'dayjs';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useSnackbar } from 'notistack';
 import { AddInvoiceModal } from '../components/ModalAddInvoice';
+import { RecurringTransactionsButton } from '../components/RecurringTransactions';
 import { LayoutMobile } from '../components/AppLayoutMobile';
 import { LoadingTransactionsPage } from '../components/SkeletonLoadingTransactionsPage';
 import { MonthSelectedContext } from '../contexts/monthSelected';
@@ -274,6 +275,7 @@ export default function Revenues() {
               <Card variant='outlined' sx={infoCardSx}>
                 <CardContent sx={{ p: { xs: 1.2, sm: 1.8 } }}>
                   <Stack spacing={1.2}>
+                    <RecurringTransactionsButton kind='revenue' />
                     <TextField
                       size='small'
                       label='Buscar por categoria, descrição ou data'
@@ -287,6 +289,7 @@ export default function Revenues() {
                         autoHeight
                         rows={filteredRevenues}
                         columns={columns}
+                        initialState={{ sorting: { sortModel: [{ field: 'value', sort: 'desc' }] } }}
                         pageSize={12}
                         rowsPerPageOptions={[12, 25, 50]}
                         disableSelectionOnClick

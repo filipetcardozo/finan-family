@@ -7,6 +7,7 @@ export type updateInvoiceTypes = (invoice: IInvoice) => Promise<void>;
 export type deleteInvoiceTypes = (invoiceId: string) => Promise<void>;
 
 export type IInvoice = {
+    recurringTemplateId?: string;
     addDate: Dayjs | null;
     addDateFormatted: string;
     description: string;

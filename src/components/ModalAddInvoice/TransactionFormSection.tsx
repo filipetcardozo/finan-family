@@ -1,6 +1,7 @@
 import React from 'react';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import Box from '@mui/material/Box';
 import type { FormikProps } from 'formik';
 import type { SxProps, Theme } from '@mui/material/styles';
 import { ModalFormActions } from './ModalFormActions';
@@ -22,6 +23,9 @@ interface TransactionFormSectionProps<T extends TransactionFormValues> {
   handleClose(): void;
   secondaryActionSx: SxProps<Theme>;
   primaryActionSx: SxProps<Theme>;
+  children?: React.ReactNode;
+  valueLabel?: string;
+  submitDisabled?: boolean;
 }
 
 export function TransactionFormSection<T extends TransactionFormValues>({
@@ -39,6 +43,9 @@ export function TransactionFormSection<T extends TransactionFormValues>({
   handleClose,
   secondaryActionSx,
   primaryActionSx,
+  children,
+  valueLabel,
+  submitDisabled,
 }: TransactionFormSectionProps<T>) {
   return (
     <>
@@ -46,14 +53,18 @@ export function TransactionFormSection<T extends TransactionFormValues>({
 
       <form onSubmit={onSubmit}>
         <DialogContent sx={dialogContentSx}>
-          <TransactionFormFields
-            form={form}
-            stackSpacing={stackSpacing}
-            categoryOptions={categoryOptions}
-            categoryValue={categoryValue}
-            onCategoryChange={onCategoryChange}
-            groupBy={groupBy}
-          />
+          <Box component='fieldset' disabled={loading} sx={{ border: 0, p: 0, m: 0, minWidth: 0 }}>
+            <TransactionFormFields
+              form={form}
+              stackSpacing={stackSpacing}
+              categoryOptions={categoryOptions}
+              categoryValue={categoryValue}
+              onCategoryChange={onCategoryChange}
+              groupBy={groupBy}
+              valueLabel={valueLabel}
+            />
+            {children}
+          </Box>
         </DialogContent>
 
         <ModalFormActions
@@ -62,6 +73,7 @@ export function TransactionFormSection<T extends TransactionFormValues>({
           submitLabel={submitLabel}
           secondaryActionSx={secondaryActionSx}
           primaryActionSx={primaryActionSx}
+          disabled={submitDisabled}
         />
       </form>
     </>

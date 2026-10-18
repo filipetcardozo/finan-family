@@ -5,9 +5,11 @@ import { FormikValues } from 'formik';
 interface Props {
   form: FormikValues;
   nameOfKeyValue: string;
+  disabled?: boolean;
+  label?: string;
 }
 
-export const CurrencyInput: React.FC<Props> = ({ nameOfKeyValue, form }) => {
+export const CurrencyInput: React.FC<Props> = ({ nameOfKeyValue, form, disabled = false, label = 'Valor' }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const setInputRef = (input: HTMLInputElement | null) => {
@@ -44,6 +46,7 @@ export const CurrencyInput: React.FC<Props> = ({ nameOfKeyValue, form }) => {
 
   return (
     <TextField
+      disabled={disabled}
       value={displayValue}
       onChange={handleChange}
       onFocus={() => {
@@ -52,7 +55,7 @@ export const CurrencyInput: React.FC<Props> = ({ nameOfKeyValue, form }) => {
           inputRef.current.setSelectionRange(length, length);
         }
       }}
-      label='Valor'
+      label={label}
       size='small'
       margin='dense'
       fullWidth

@@ -1,7 +1,7 @@
 import dayjs, { Dayjs } from 'dayjs';
 import React, { Context } from 'react';
 import { IInvoice } from '../providers/invoices/types';
-import { useMemo, useState, useEffect, useContext } from 'react';
+import { useMemo, useState, useEffect, useContext, useRef } from 'react';
 import { deleteInvoice, getUserInvoices } from '../providers/invoices/services';
 import { MonthSelectedContext } from './monthSelected';
 import { useAuth } from '../hooks/useAuth';
@@ -14,6 +14,7 @@ interface ContextType {
   handleUpdateInvoice: (newInvoice: IInvoice) => void;
   handleDeleteInvoice: (invoiceId: string) => Promise<void>;
   handleAddInvoice: (newInvoice: IInvoice) => void;
+  handleAddInvoices: (newInvoices: IInvoice[]) => void;
   expensesIndicatedPerDay: number;
   expensesOfDay: IInvoice[] | [];
 }
@@ -25,6 +26,7 @@ const defaultState = {
   handleUpdateInvoice: (newInvoice: IInvoice) => { },
   handleDeleteInvoice: async (invoiceId: string) => { },
   handleAddInvoice: (newInvoice: IInvoice) => { },
+  handleAddInvoices: (newInvoices: IInvoice[]) => { },
   expensesIndicatedPerDay: 0,
   expensesOfDay: []
 }
@@ -38,6 +40,8 @@ export const ExpensesProvider = ({ children }: any) => {
   const [loadingGetInvoices, setLoadingGetInvoices] = useState(true);
 
   const { dateToAnalyze } = useContext(MonthSelectedContext);
+  const selectedMonthRef = useRef(dateToAnalyze.format('MM/YYYY'));
+  selectedMonthRef.current = dateToAnalyze.format('MM/YYYY');
   const { monthlyRevenues } = useContext(RevenuesContext);
 
   const isInvestmentCategory = (category?: string) => {
@@ -55,15 +59,17 @@ export const ExpensesProvider = ({ children }: any) => {
   };
 
   useEffect(() => {
+    let cancelled = false;
     if (uid) {
       setLoadingGetInvoices(true);
       getUserInvoices(uid, dateToAnalyze.format('MM/YYYY').toString())
         .then((data) => {
-          setInvoices(data);
+          if (!cancelled) setInvoices(data);
         })
         .catch(err => console.log(err))
-        .finally(() => setLoadingGetInvoices(false));
+        .finally(() => { if (!cancelled) setLoadingGetInvoices(false); });
     }
+    return () => { cancelled = true; };
   }, [uid, dateToAnalyze]);
 
   const monthlyExpenses = useMemo(() => {
@@ -121,14 +127,16 @@ export const ExpensesProvider = ({ children }: any) => {
     setInvoices(newArray);
   }
 
-  const handleAddInvoice = (newInvoice: IInvoice) => {
-    if (newInvoice.addDateFormatted === dateToAnalyze.format('MM/YYYY')) {
-      let newArray = [...invoices];
-      newArray.push(newInvoice);
+  const handleAddInvoices = (newInvoices: IInvoice[]) => {
+    setInvoices(previous => {
+      const additions = newInvoices.filter(invoice => invoice.addDateFormatted === selectedMonthRef.current);
+      const merged = new Map(previous.map(invoice => [invoice.id, invoice]));
+      additions.forEach(invoice => merged.set(invoice.id, invoice));
+      return Array.from(merged.values());
+    });
+  };
 
-      setInvoices(newArray);
-    }
-  }
+  const handleAddInvoice = (newInvoice: IInvoice) => handleAddInvoices([newInvoice]);
 
   return (
     <ExpensesContext.Provider value={{
@@ -138,6 +146,7 @@ export const ExpensesProvider = ({ children }: any) => {
       handleUpdateInvoice,
       handleDeleteInvoice,
       handleAddInvoice,
+      handleAddInvoices,
       expensesIndicatedPerDay,
       expensesOfDay
     }}>

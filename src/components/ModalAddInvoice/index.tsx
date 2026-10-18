@@ -14,10 +14,13 @@ import { RevenuesContext } from '../../contexts/revenues';
 import { getCategoryGroupLabel } from '../../utils/categoryGroupLabels';
 import type { IInvoice } from '../../providers/invoices/types';
 import { putInvoice, updateInvoice } from '../../providers/invoices/services';
+import { createInstallmentPurchaseId, putInstallmentInvoices } from '../../providers/invoices/installments';
+import { isValidInstallmentCount } from '../../utils/installments';
 import type { IRevenue } from '../../providers/revenues/types';
 import { putRevenue, updateRevenue } from '../../providers/revenues/services';
 import { TabPanel } from './TabPanel';
 import { TransactionFormSection } from './TransactionFormSection';
+import { InstallmentOptions } from './InstallmentOptions';
 import {
   getDefaultAddDateBySelectedMonth,
   primaryActionSx,
@@ -37,7 +40,7 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
   const { dateToAnalyze } = useContext(MonthSelectedContext);
   const { expenseCategoryOptions, revenueCategoryOptions } = useContext(CategoriesContext);
 
-  const { handleAddInvoice, handleUpdateInvoice } = useContext(ExpensesContext);
+  const { handleAddInvoices, handleUpdateInvoice } = useContext(ExpensesContext);
   const { handleAddRevenue, handleUpdateRevenue } = useContext(RevenuesContext);
 
   const defaultAddDate = getDefaultAddDateBySelectedMonth(dateToAnalyze);
@@ -63,10 +66,31 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
   };
 
   const [loadingButton, setLoadingButton] = React.useState(false);
+  const [installmentPurchase, setInstallmentPurchase] = React.useState(false);
+  const [installmentCount, setInstallmentCount] = React.useState('2');
+  const installmentPurchaseId = React.useRef<string | null>(null);
+  const submittingExpense = React.useRef(false);
+  const validInstallments = isValidInstallmentCount(Number(installmentCount));
+
+  useEffect(() => {
+    setInstallmentPurchase(false);
+    setInstallmentCount('2');
+    installmentPurchaseId.current = null;
+  }, [open, invoice?.id, revenue?.id, dateToAnalyze]);
+
+  const closeWhenIdle = () => {
+    if (!loadingButton && !submittingExpense.current) handleClose();
+  };
 
   const formExpense = useFormik({
     initialValues: initialValuesExpenseForm,
     onSubmit: async (values) => {
+      if (submittingExpense.current) return;
+      if (!invoice?.id && installmentPurchase && !validInstallments) {
+        enqueueSnackbar('Revise a quantidade de parcelas.', { variant: 'error' });
+        return;
+      }
+      submittingExpense.current = true;
       setLoadingButton(true);
 
       if (invoice && invoice.id) {
@@ -89,19 +113,27 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
             });
           })
           .finally(() => {
+            submittingExpense.current = false;
             setLoadingButton(false);
           });
       } else {
         const newValues = { ...values, userId: uid };
+        let creation: Promise<IInvoice[]>;
+        if (installmentPurchase) {
+          if (!installmentPurchaseId.current) installmentPurchaseId.current = createInstallmentPurchaseId();
+          creation = putInstallmentInvoices(newValues, Number(installmentCount), installmentPurchaseId.current);
+        } else {
+          creation = putInvoice(newValues).then(createdInvoice => [createdInvoice]);
+        }
 
-        await putInvoice(newValues)
-          .then((createdInvoice) => {
-            enqueueSnackbar('Despesa lançada', {
+        await creation
+          .then((createdInvoices) => {
+            enqueueSnackbar(installmentPurchase ? 'Compra parcelada lançada' : 'Despesa lançada', {
               autoHideDuration: 2000,
               variant: 'success',
               anchorOrigin: { horizontal: 'center', vertical: 'top' },
             });
-            handleAddInvoice(createdInvoice);
+            handleAddInvoices(createdInvoices);
             formExpense.resetForm();
             formExpense.setFieldValue('value', null);
             handleClose();
@@ -114,6 +146,7 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
             });
           })
           .finally(() => {
+            submittingExpense.current = false;
             setLoadingButton(false);
           });
       }
@@ -247,7 +280,7 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
   });
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={closeWhenIdle} fullWidth maxWidth="sm">
       <div>
         <Box
           sx={{
@@ -276,11 +309,13 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
           >
             <Tab
               label="Despesa"
+              disabled={loadingButton}
               {...a11yProps(0)}
               sx={{ minHeight: 40, fontSize: 12.5, fontWeight: 700, color: '#2a4f64' }}
             />
             <Tab
               label="Receita"
+              disabled={loadingButton}
               {...a11yProps(1)}
               sx={{ minHeight: 40, fontSize: 12.5, fontWeight: 700, color: '#2a4f64' }}
             />
@@ -299,11 +334,19 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
             onCategoryChange={(value) => formExpense.setFieldValue('invoiceCategory', value)}
             groupBy={expenseGroupBy}
             loading={loadingButton}
-            submitLabel={invoice && invoice.id ? 'Atualizar' : 'Inserir'}
-            handleClose={handleClose}
+            submitLabel={invoice?.id ? 'Atualizar' : installmentPurchase
+              ? (validInstallments ? `Lançar ${Number(installmentCount)} parcelas` : 'Lançar parcelas') : 'Inserir'}
+            submitDisabled={!invoice?.id && installmentPurchase && !validInstallments}
+            valueLabel={!invoice?.id && installmentPurchase ? 'Valor da parcela' : undefined}
+            handleClose={closeWhenIdle}
             secondaryActionSx={secondaryActionSx}
             primaryActionSx={primaryActionSx}
-          />
+          >
+            {!invoice?.id && <InstallmentOptions
+              checked={installmentPurchase} count={installmentCount} value={formExpense.values.value}
+              disabled={loadingButton} onCheckedChange={setInstallmentPurchase} onCountChange={setInstallmentCount}
+            />}
+          </TransactionFormSection>
         </TabPanel>
 
         <TabPanel value={tabSelected} index={1}>
@@ -319,7 +362,7 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
             groupBy={revenueGroupBy}
             loading={loadingButton}
             submitLabel={revenue && revenue.id ? 'Atualizar' : 'Inserir'}
-            handleClose={handleClose}
+            handleClose={closeWhenIdle}
             secondaryActionSx={secondaryActionSx}
             primaryActionSx={primaryActionSx}
           />
