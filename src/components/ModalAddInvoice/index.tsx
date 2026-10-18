@@ -66,13 +66,18 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
   };
 
   const [loadingButton, setLoadingButton] = React.useState(false);
+  const [categoryNearTop, setCategoryNearTop] = React.useState(false);
+  const handleCategoryOpen = React.useCallback(() => setCategoryNearTop(true), []);
   const [installmentPurchase, setInstallmentPurchase] = React.useState(false);
   const [installmentCount, setInstallmentCount] = React.useState('2');
   const installmentPurchaseId = React.useRef<string | null>(null);
   const submittingExpense = React.useRef(false);
+  const expenseValueInput = React.useRef<HTMLInputElement>(null);
+  const revenueValueInput = React.useRef<HTMLInputElement>(null);
   const validInstallments = isValidInstallmentCount(Number(installmentCount));
 
   useEffect(() => {
+    setCategoryNearTop(false);
     setInstallmentPurchase(false);
     setInstallmentCount('2');
     installmentPurchaseId.current = null;
@@ -259,11 +264,23 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
 
   const [tabSelected, setTabSelected] = React.useState(0);
 
+  const focusValueAfterOpen = (dialog: HTMLElement) => {
+    if (!open) return;
+    const input = tabSelected === 0 ? expenseValueInput.current : revenueValueInput.current;
+    if (!input?.isConnected || input.matches(':disabled')) return;
+    const activeElement = dialog.ownerDocument.activeElement;
+    // Do not steal focus if the user already chose another field during opening.
+    if (activeElement && activeElement !== input && dialog.contains(activeElement)
+      && activeElement.matches('input, textarea, button, a[href], [role="combobox"]')) return;
+    input.focus({ preventScroll: true });
+  };
+
   useEffect(() => {
     if (revenue?.id) setTabSelected(1);
   }, [revenue?.id]);
 
   const handleChangeTab = (_event: React.SyntheticEvent, newValue: number) => {
+    setCategoryNearTop(false);
     setTabSelected(newValue);
   };
 
@@ -280,7 +297,11 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
   });
 
   return (
-    <Dialog open={open} onClose={closeWhenIdle} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={closeWhenIdle} fullWidth maxWidth="sm"
+      TransitionProps={{ onEntered: focusValueAfterOpen }}
+      sx={{ '& .MuiDialog-container': { alignItems: { xs: categoryNearTop ? 'flex-start' : 'center', sm: 'center' } } }}
+      PaperProps={{ sx: { mt: { xs: categoryNearTop ? 1 : 4, sm: 4 } } }}
+    >
       <div>
         <Box
           sx={{
@@ -338,6 +359,8 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
               ? (validInstallments ? `Lançar ${Number(installmentCount)} parcelas` : 'Lançar parcelas') : 'Inserir'}
             submitDisabled={!invoice?.id && installmentPurchase && !validInstallments}
             valueLabel={!invoice?.id && installmentPurchase ? 'Valor da parcela' : undefined}
+            onCategoryOpen={handleCategoryOpen}
+            valueInputRef={expenseValueInput}
             handleClose={closeWhenIdle}
             secondaryActionSx={secondaryActionSx}
             primaryActionSx={primaryActionSx}
@@ -362,6 +385,8 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
             groupBy={revenueGroupBy}
             loading={loadingButton}
             submitLabel={revenue && revenue.id ? 'Atualizar' : 'Inserir'}
+            onCategoryOpen={handleCategoryOpen}
+            valueInputRef={revenueValueInput}
             handleClose={closeWhenIdle}
             secondaryActionSx={secondaryActionSx}
             primaryActionSx={primaryActionSx}

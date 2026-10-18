@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { TextField } from '@mui/material';
+import { useForkRef } from '@mui/material/utils';
 import { FormikValues } from 'formik';
 
 interface Props {
@@ -7,16 +8,13 @@ interface Props {
   nameOfKeyValue: string;
   disabled?: boolean;
   label?: string;
+  autoFocus?: boolean;
+  inputRef?: React.Ref<HTMLInputElement>;
 }
 
-export const CurrencyInput: React.FC<Props> = ({ nameOfKeyValue, form, disabled = false, label = 'Valor' }) => {
+export const CurrencyInput: React.FC<Props> = ({ nameOfKeyValue, form, disabled = false, label = 'Valor', autoFocus = false, inputRef: forwardedInputRef }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
-
-  const setInputRef = (input: HTMLInputElement | null) => {
-    if (input) {
-      inputRef.current = input;
-    }
-  };
+  const handleInputRef = useForkRef(inputRef, forwardedInputRef);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -46,6 +44,7 @@ export const CurrencyInput: React.FC<Props> = ({ nameOfKeyValue, form, disabled 
 
   return (
     <TextField
+      autoFocus={autoFocus}
       disabled={disabled}
       value={displayValue}
       onChange={handleChange}
@@ -61,7 +60,7 @@ export const CurrencyInput: React.FC<Props> = ({ nameOfKeyValue, form, disabled 
       fullWidth
       type='tel'
       autoComplete='off'
-      inputRef={setInputRef}
+      inputRef={handleInputRef}
       inputProps={{ inputMode: 'numeric' }}
       placeholder='R$ 0,00'
     />

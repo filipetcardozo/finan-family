@@ -26,6 +26,8 @@ interface TransactionFormSectionProps<T extends TransactionFormValues> {
   children?: React.ReactNode;
   valueLabel?: string;
   submitDisabled?: boolean;
+  onCategoryOpen?(): void;
+  valueInputRef?: React.Ref<HTMLInputElement>;
 }
 
 export function TransactionFormSection<T extends TransactionFormValues>({
@@ -46,6 +48,8 @@ export function TransactionFormSection<T extends TransactionFormValues>({
   children,
   valueLabel,
   submitDisabled,
+  onCategoryOpen,
+  valueInputRef,
 }: TransactionFormSectionProps<T>) {
   return (
     <>
@@ -62,6 +66,8 @@ export function TransactionFormSection<T extends TransactionFormValues>({
               onCategoryChange={onCategoryChange}
               groupBy={groupBy}
               valueLabel={valueLabel}
+              onCategoryOpen={onCategoryOpen}
+              valueInputRef={valueInputRef}
             />
             {children}
           </Box>

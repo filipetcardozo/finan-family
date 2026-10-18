@@ -17,6 +17,8 @@ interface TransactionFormFieldsProps<T extends TransactionFormValues> {
   onCategoryChange(value: string): void;
   groupBy?: (option: CategoryOption) => string;
   valueLabel?: string;
+  onCategoryOpen?(): void;
+  valueInputRef?: React.Ref<HTMLInputElement>;
 }
 
 export function TransactionFormFields<T extends TransactionFormValues>({
@@ -27,6 +29,8 @@ export function TransactionFormFields<T extends TransactionFormValues>({
   onCategoryChange,
   groupBy,
   valueLabel,
+  onCategoryOpen,
+  valueInputRef,
 }: TransactionFormFieldsProps<T>) {
   return (
     <Stack spacing={stackSpacing}>
@@ -35,9 +39,10 @@ export function TransactionFormFields<T extends TransactionFormValues>({
         value={categoryValue}
         onChange={onCategoryChange}
         groupBy={groupBy}
+        onOpen={onCategoryOpen}
       />
 
-      <CurrencyInput nameOfKeyValue="value" form={form} label={valueLabel} />
+      <CurrencyInput nameOfKeyValue="value" form={form} label={valueLabel} inputRef={valueInputRef} autoFocus />
 
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-BR">
         <MobileDatePicker
