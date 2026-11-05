@@ -4,12 +4,14 @@ import { useRouter } from 'next/router';
 
 interface ContextType {
     dateToAnalyze: Dayjs;
+    ready: boolean;
     handlePreviousMonth(): void;
     handleNextMonth(): void;
 }
 
-export const MonthSelectedContext: Context<ContextType> = React.createContext({
+export const MonthSelectedContext: Context<ContextType> = React.createContext<ContextType>({
     dateToAnalyze: dayjs(new Date()),
+    ready: false,
     handlePreviousMonth: () => { },
     handleNextMonth: () => { }
 });
@@ -51,7 +53,13 @@ const formatMonthToQuery = (date: Dayjs): string => {
 export const MonthSelectedProvider = ({ children }: { children: React.ReactNode }) => {
     const router = useRouter();
 
-    const [dateToAnalyze, setDateToAnalyze] = React.useState(dayjs(new Date()).locale('pt-BR'));
+    const [defaultMonth] = React.useState(() => dayjs().startOf('month').locale('pt-BR'));
+    const monthQueryValue = getMonthQueryValue(router.query.month);
+    // Read the URL during render: don't briefly load the current month before
+    // an effect applies the month the user actually opened.
+    const dateToAnalyze = React.useMemo(() => parseMonthFromQuery(monthQueryValue) ?? defaultMonth, [monthQueryValue, defaultMonth]);
+    const navigationMonth = React.useRef(dateToAnalyze);
+    React.useEffect(() => { navigationMonth.current = dateToAnalyze; }, [dateToAnalyze]);
 
     const syncMonthToUrl = React.useCallback((date: Dayjs) => {
         if (!router.isReady) {
@@ -80,37 +88,22 @@ export const MonthSelectedProvider = ({ children }: { children: React.ReactNode 
             return;
         }
 
-        const monthQueryValue = getMonthQueryValue(router.query.month);
         const parsedMonth = parseMonthFromQuery(monthQueryValue);
-
-        if (parsedMonth) {
-            if (!parsedMonth.isSame(dateToAnalyze, 'month')) {
-                setDateToAnalyze(parsedMonth);
-            }
-            return;
-        }
-
-        syncMonthToUrl(dateToAnalyze);
-    }, [router.isReady, router.query.month, syncMonthToUrl]);
+        if (!parsedMonth) syncMonthToUrl(dateToAnalyze);
+    }, [router.isReady, monthQueryValue, syncMonthToUrl, dateToAnalyze]);
 
     const handlePreviousMonth = () => {
-        setDateToAnalyze((previousDate) => {
-            const previousMonth = previousDate.add(-1, 'M');
-            syncMonthToUrl(previousMonth);
-            return previousMonth;
-        });
+        navigationMonth.current = navigationMonth.current.subtract(1, 'month');
+        syncMonthToUrl(navigationMonth.current);
     };
 
     const handleNextMonth = () => {
-        setDateToAnalyze((previousDate) => {
-            const nextMonth = previousDate.add(1, 'M');
-            syncMonthToUrl(nextMonth);
-            return nextMonth;
-        });
+        navigationMonth.current = navigationMonth.current.add(1, 'month');
+        syncMonthToUrl(navigationMonth.current);
     };
 
     return (
-        <MonthSelectedContext.Provider value={{ dateToAnalyze, handlePreviousMonth, handleNextMonth }}>
+        <MonthSelectedContext.Provider value={{ dateToAnalyze, ready: router.isReady, handlePreviousMonth, handleNextMonth }}>
             {children}
         </MonthSelectedContext.Provider>
     );

@@ -1,17 +1,20 @@
 import dayjs, { Dayjs } from 'dayjs';
 import React, { Context } from 'react';
 import { IInvoice } from '../providers/invoices/types';
-import { useMemo, useState, useEffect, useContext, useRef } from 'react';
-import { deleteInvoice, getUserInvoices } from '../providers/invoices/services';
+import { useMemo, useContext, useRef } from 'react';
+import { deleteInvoice } from '../providers/invoices/services';
+import { useMonthlyTransactions } from '../hooks/useMonthlyTransactions';
 import { MonthSelectedContext } from './monthSelected';
 import { useAuth } from '../hooks/useAuth';
 import { RevenuesContext } from './revenues';
+import { isInstallmentInvoice } from '../utils/installments';
 
 interface ContextType {
   loadingGetInvoices: boolean;
   invoices: IInvoice[] | [];
   monthlyExpenses: number;
   handleUpdateInvoice: (newInvoice: IInvoice) => void;
+  handleUpdateInvoices: (updatedInvoices: IInvoice[]) => void;
   handleDeleteInvoice: (invoiceId: string) => Promise<void>;
   handleAddInvoice: (newInvoice: IInvoice) => void;
   handleAddInvoices: (newInvoices: IInvoice[]) => void;
@@ -24,6 +27,7 @@ const defaultState = {
   invoices: [],
   monthlyExpenses: 0,
   handleUpdateInvoice: (newInvoice: IInvoice) => { },
+  handleUpdateInvoices: (updatedInvoices: IInvoice[]) => { },
   handleDeleteInvoice: async (invoiceId: string) => { },
   handleAddInvoice: (newInvoice: IInvoice) => { },
   handleAddInvoices: (newInvoices: IInvoice[]) => { },
@@ -34,12 +38,10 @@ const defaultState = {
 export const ExpensesContext = React.createContext<ContextType>(defaultState);
 
 export const ExpensesProvider = ({ children }: any) => {
-  const { uid } = useAuth();
+  const { uid, isLogged } = useAuth();
 
-  const [invoices, setInvoices] = useState<IInvoice[]>([]);
-  const [loadingGetInvoices, setLoadingGetInvoices] = useState(true);
-
-  const { dateToAnalyze } = useContext(MonthSelectedContext);
+  const { dateToAnalyze, ready } = useContext(MonthSelectedContext);
+  const { entries: invoices, updateEntries: setInvoices, loading: loadingGetInvoices } = useMonthlyTransactions<IInvoice>('invoices', uid, dateToAnalyze.format('MM/YYYY'), isLogged === true && ready);
   const selectedMonthRef = useRef(dateToAnalyze.format('MM/YYYY'));
   selectedMonthRef.current = dateToAnalyze.format('MM/YYYY');
   const { monthlyRevenues } = useContext(RevenuesContext);
@@ -57,20 +59,6 @@ export const ExpensesProvider = ({ children }: any) => {
 
     return normalized.startsWith('invest');
   };
-
-  useEffect(() => {
-    let cancelled = false;
-    if (uid) {
-      setLoadingGetInvoices(true);
-      getUserInvoices(uid, dateToAnalyze.format('MM/YYYY').toString())
-        .then((data) => {
-          if (!cancelled) setInvoices(data);
-        })
-        .catch(err => console.log(err))
-        .finally(() => { if (!cancelled) setLoadingGetInvoices(false); });
-    }
-    return () => { cancelled = true; };
-  }, [uid, dateToAnalyze]);
 
   const monthlyExpenses = useMemo(() => {
     let totalExpenses = 0;
@@ -98,7 +86,7 @@ export const ExpensesProvider = ({ children }: any) => {
   const expensesOfDay = useMemo(() => {
     if (invoices) {
       return [...invoices].filter(v => {
-        if (v.addDate?.format('DD/MM/YYYY') === dayjs().format('DD/MM/YYYY')) {
+        if (!v.isMonthlyFixed && !isInstallmentInvoice(v) && v.addDate?.format('DD/MM/YYYY') === dayjs().format('DD/MM/YYYY')) {
           return true;
         }
       })
@@ -107,29 +95,29 @@ export const ExpensesProvider = ({ children }: any) => {
     }
   }, [invoices])
 
-  const handleUpdateInvoice = (newInvoice: IInvoice) => {
-    let index = invoices.findIndex((value => value.id === newInvoice.id))
+  const handleUpdateInvoices = (updatedInvoices: IInvoice[]) => {
+    setInvoices(previous => {
+      const ids = new Set(updatedInvoices.map(invoice => invoice.id));
+      return [
+        ...previous.filter(invoice => !ids.has(invoice.id)),
+        ...updatedInvoices.filter(invoice => invoice.addDateFormatted === selectedMonthRef.current),
+      ];
+    });
+  };
 
-    let newArray = [...invoices];
-    newArray[index] = { ...newInvoice };
-
-    setInvoices(newArray);
-  }
+  const handleUpdateInvoice = (newInvoice: IInvoice) => handleUpdateInvoices([newInvoice]);
 
   const handleDeleteInvoice = async (invoiceId: string) => {
+    if (invoices.some(invoice => invoice.id === invoiceId && invoice.pendingSync)) throw new Error('Aguarde a sincronização para excluir.');
     await deleteInvoice(invoiceId)
-
-    let index = invoices.findIndex((value => value.id === invoiceId))
-
-    let newArray = [...invoices];
-    newArray.splice(index, 1)
-
-    setInvoices(newArray);
+    setInvoices(previous => previous.filter(invoice => invoice.id !== invoiceId));
   }
 
   const handleAddInvoices = (newInvoices: IInvoice[]) => {
     setInvoices(previous => {
-      const additions = newInvoices.filter(invoice => invoice.addDateFormatted === selectedMonthRef.current);
+      // Queued entries come from the durable overlay; don't keep stale pending flags
+      // in the server snapshot after the queue has been acknowledged.
+      const additions = newInvoices.filter(invoice => !invoice.pendingSync && invoice.addDateFormatted === selectedMonthRef.current);
       const merged = new Map(previous.map(invoice => [invoice.id, invoice]));
       additions.forEach(invoice => merged.set(invoice.id, invoice));
       return Array.from(merged.values());
@@ -144,6 +132,7 @@ export const ExpensesProvider = ({ children }: any) => {
       invoices,
       monthlyExpenses,
       handleUpdateInvoice,
+      handleUpdateInvoices,
       handleDeleteInvoice,
       handleAddInvoice,
       handleAddInvoices,

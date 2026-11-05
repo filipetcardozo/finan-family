@@ -24,6 +24,7 @@ const readTemplates = (data: Record<string, unknown> | undefined, kind: Transact
     && Number.isInteger(item.day) && item.day >= 1 && item.day <= 31
     && typeof item.startsOn === 'string' && typeof item.lastUsedMonth === 'string'
     && (item.matchValue === undefined || typeof item.matchValue === 'boolean')
+    && (item.isMonthlyFixed === undefined || typeof item.isMonthlyFixed === 'boolean')
     && typeof item.active === 'boolean');
 };
 
@@ -102,6 +103,7 @@ export const launchRecurringTransactions = async (
           [kind === 'expense' ? 'invoiceCategory' : 'revenueCategory']: selection.template.category,
           addDate: dayjs(selection.date).toString(), addDateFormatted: month.format('MM/YYYY'),
           recurringTemplateId: selection.template.id,
+          ...(kind === 'expense' ? { isMonthlyFixed: selection.template.isMonthlyFixed === true } : {}),
         };
         transaction.set(refs[index], entry);
         transactions.push({ ...entry, addDate: dayjs(selection.date) } as FinancialTransaction);
@@ -109,11 +111,18 @@ export const launchRecurringTransactions = async (
       }
     });
 
-    const confirmedSelections = selections.map((selection, index) => ({
-      ...selection,
-      value: transactions[index].value!,
-      date: transactions[index].addDate!.format('YYYY-MM-DD'),
-    }));
+    const confirmedSelections = selections.map((selection, index) => {
+      const entry = transactions[index];
+      return {
+        ...selection,
+        template: {
+          ...selection.template,
+          ...(kind === 'expense' ? { isMonthlyFixed: 'isMonthlyFixed' in entry && entry.isMonthlyFixed === true } : {}),
+        },
+        value: transactions[index].value!,
+        date: transactions[index].addDate!.format('YYYY-MM-DD'),
+      };
+    });
     transaction.set(settingsRef, {
       [settingsField(kind)]: updatedRecurringTemplates(readTemplates(settings.data(), kind), confirmedSelections, month),
     }, { merge: true });

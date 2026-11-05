@@ -25,6 +25,7 @@ import { launchRecurringTransactions, loadRecurringData, stopRecurringTemplate }
 import type { IInvoice } from '../providers/invoices/types';
 import type { IRevenue } from '../providers/revenues/types';
 import type { RecurringReviewRow, RecurringSelection, TransactionKind } from '../providers/recurring/types';
+import { useOfflineSync } from '../contexts/offlineSync';
 
 interface ReviewProps {
   kind: TransactionKind;
@@ -42,10 +43,11 @@ export function RecurringTransactionsButton({ kind }: { kind: TransactionKind })
 
 function RecurringEntry({ kind, uid, month }: Omit<ReviewProps, 'onClose'>) {
   const [open, setOpen] = useState(false);
+  const { online } = useOfflineSync();
   return (
     <>
       <Button
-        variant='outlined' startIcon={<RepeatRoundedIcon />} onClick={() => setOpen(true)} disabled={!uid}
+        variant='outlined' startIcon={<RepeatRoundedIcon />} onClick={() => setOpen(true)} disabled={!uid || !online}
         sx={{ alignSelf: { xs: 'stretch', sm: 'flex-end' }, minHeight: 44, borderRadius: 2.5 }}
       >
         Repetir lançamentos
@@ -90,7 +92,7 @@ function RecurringReview({ kind, uid, month, onClose }: ReviewProps) {
           ...candidate,
           selected: candidate.saved && !candidate.alreadyPosted,
           value: candidate.template.value,
-          date: dateForRecurringDay(month, candidate.template.day),
+          date: dateForRecurringDay(month, kind === 'expense' && candidate.template.isMonthlyFixed ? 1 : candidate.template.day),
         })));
       })
       .catch(() => {
@@ -171,8 +173,8 @@ function RecurringReview({ kind, uid, month, onClose }: ReviewProps) {
     return (
       <Paper key={template.id} variant='outlined' sx={{
         p: 1.5, borderRadius: 3,
-        borderColor: row.selected ? 'primary.main' : 'rgba(6,42,63,.12)',
-        backgroundColor: row.selected ? '#f5fbfa' : 'background.paper',
+        borderColor: row.selected ? 'primary.main' : 'var(--border)',
+        backgroundColor: row.selected ? 'var(--primary-soft)' : 'background.paper',
       }}>
         <Stack direction='row' alignItems='flex-start' spacing={0.5}>
           <Checkbox
@@ -212,7 +214,10 @@ function RecurringReview({ kind, uid, month, onClose }: ReviewProps) {
             }} />
             {(!row.value || !Number.isFinite(row.value) || row.value <= 0) && <Typography variant='caption' color='error'>Informe um valor maior que zero.</Typography>}
           </Box>
-          <TextField
+          {kind === 'expense' && template.isMonthlyFixed ? <TextField
+            label='Mês de referência' size='small' fullWidth value={month.format('MM/YYYY')}
+            InputProps={{ readOnly: true }} helperText='Despesa fixa do mês' disabled={busy}
+          /> : <TextField
             label='Data' type='date' size='small' fullWidth disabled={busy}
             value={row.date} error={!dateValid}
             helperText={!dateValid ? 'Escolha uma data deste mês.' : undefined}
@@ -220,7 +225,7 @@ function RecurringReview({ kind, uid, month, onClose }: ReviewProps) {
             InputLabelProps={{ shrink: true }}
             inputProps={{ min: month.startOf('month').format('YYYY-MM-DD'), max: month.endOf('month').format('YYYY-MM-DD') }}
             sx={{ minWidth: 0, '& input': { minWidth: 0, px: 1, minHeight: 24 } }}
-          />
+          />}
         </Box>}
       </Paper>
     );
@@ -229,7 +234,7 @@ function RecurringReview({ kind, uid, month, onClose }: ReviewProps) {
   return (
     <Dialog open onClose={handleClose} fullScreen={mobile} fullWidth maxWidth='sm'
       aria-labelledby='recurring-title' PaperProps={{ sx: { borderRadius: { xs: 0, sm: 4 } } }}>
-      <DialogTitle component='div' sx={{ px: 2, py: 1.5, borderBottom: '1px solid rgba(6,42,63,.1)' }}>
+      <DialogTitle component='div' sx={{ px: 2, py: 1.5, borderBottom: '1px solid var(--border)' }}>
         <Stack direction='row' alignItems='center' spacing={1}>
           {historyOpen && <IconButton aria-label='Voltar para revisão' onClick={() => setHistoryOpen(false)} sx={{ minWidth: 44, minHeight: 44 }}><ArrowBackRoundedIcon /></IconButton>}
           <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -241,7 +246,7 @@ function RecurringReview({ kind, uid, month, onClose }: ReviewProps) {
           <IconButton aria-label='Fechar revisão' onClick={handleClose} disabled={busy} sx={{ minWidth: 44, minHeight: 44 }}><CloseRoundedIcon /></IconButton>
         </Stack>
       </DialogTitle>
-      <DialogContent sx={{ p: 2, backgroundColor: '#fbfdfd' }}>
+      <DialogContent sx={{ p: 2, backgroundColor: 'var(--subtle)' }}>
         {error && <Alert severity='error' sx={{ my: 1.5 }} action={!rows.length && !loading ? <Button color='inherit' onClick={() => setAttempt(value => value + 1)}>Tentar novamente</Button> : undefined}>{error}</Alert>}
         {loading ? <Stack alignItems='center' spacing={2} sx={{ py: 6 }} role='status'>
           <CircularProgress size={28} />
@@ -277,7 +282,7 @@ function RecurringReview({ kind, uid, month, onClose }: ReviewProps) {
       </DialogContent>
       <DialogActions sx={{
         display: 'block', p: 2, pb: 'max(16px, env(safe-area-inset-bottom))',
-        borderTop: '1px solid rgba(6,42,63,.1)', backgroundColor: 'background.paper',
+        borderTop: '1px solid var(--border)', backgroundColor: 'background.paper',
       }}>
         {historyOpen ? <Button variant='contained' fullWidth onClick={() => setHistoryOpen(false)} sx={{ minHeight: 48, borderRadius: 2.5 }}>Voltar para revisão{selected.length ? ` (${selected.length})` : ''}</Button> : <>
           {selected.length > 0 && <Typography variant='body2' sx={{ mb: 1.5 }} aria-live='polite'>

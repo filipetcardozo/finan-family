@@ -1,8 +1,9 @@
 import dayjs from 'dayjs';
 import React from 'react';
 import { IRevenue } from '../providers/revenues/types';
-import { useMemo, useState, useEffect, useContext, useRef } from 'react';
-import { deleteRevenue, getUserRevenues } from '../providers/revenues/services';
+import { useMemo, useContext, useRef } from 'react';
+import { deleteRevenue } from '../providers/revenues/services';
+import { useMonthlyTransactions } from '../hooks/useMonthlyTransactions';
 import { MonthSelectedContext } from './monthSelected';
 import { useAuth } from '../hooks/useAuth';
 
@@ -31,28 +32,12 @@ const defaultState = {
 export const RevenuesContext = React.createContext<ContextType>(defaultState);
 
 export const RevenuesProvider = ({ children }: any) => {
-  const { uid } = useAuth();
+  const { uid, isLogged } = useAuth();
 
-  const [revenues, setRevenues] = useState<IRevenue[]>([]);
-  const [loadingGetRevenues, setLoadingGetRevenues] = useState(true);
-
-  const { dateToAnalyze } = useContext(MonthSelectedContext);
+  const { dateToAnalyze, ready } = useContext(MonthSelectedContext);
+  const { entries: revenues, updateEntries: setRevenues, loading: loadingGetRevenues } = useMonthlyTransactions<IRevenue>('revenues', uid, dateToAnalyze.format('MM/YYYY'), isLogged === true && ready);
   const selectedMonthRef = useRef(dateToAnalyze.format('MM/YYYY'));
   selectedMonthRef.current = dateToAnalyze.format('MM/YYYY');
-
-  useEffect(() => {
-    let cancelled = false;
-    if (uid) {
-      setLoadingGetRevenues(true);
-      getUserRevenues(uid, dateToAnalyze.format('MM/YYYY').toString())
-        .then((data) => {
-          if (!cancelled) setRevenues(data);
-        })
-        .catch(err => console.log(err))
-        .finally(() => { if (!cancelled) setLoadingGetRevenues(false); });
-    }
-    return () => { cancelled = true; };
-  }, [uid, dateToAnalyze]);
 
   const monthlyRevenues = useMemo(() => {
     let totalRevenues = 0;
@@ -78,28 +63,19 @@ export const RevenuesProvider = ({ children }: any) => {
   }, [revenues])
 
   const handleUpdateRevenue = (newRevenue: IRevenue) => {
-    let index = revenues.findIndex((value => value.id === newRevenue.id))
-
-    let newArray = [...revenues];
-    newArray[index] = { ...newRevenue };
-
-    setRevenues(newArray);
+    setRevenues(previous => [...previous.filter(revenue => revenue.id !== newRevenue.id),
+      ...(newRevenue.addDateFormatted === selectedMonthRef.current ? [newRevenue] : [])]);
   }
 
   const handleDeleteRevenue = async (revenueId: string) => {
+    if (revenues.some(revenue => revenue.id === revenueId && revenue.pendingSync)) throw new Error('Aguarde a sincronização para excluir.');
     await deleteRevenue(revenueId)
-
-    let index = revenues.findIndex((value => value.id === revenueId))
-
-    let newArray = [...revenues];
-    newArray.splice(index, 1)
-
-    setRevenues(newArray);
+    setRevenues(previous => previous.filter(revenue => revenue.id !== revenueId));
   }
 
   const handleAddRevenues = (newRevenues: IRevenue[]) => {
     setRevenues(previous => {
-      const additions = newRevenues.filter(revenue => revenue.addDateFormatted === selectedMonthRef.current);
+      const additions = newRevenues.filter(revenue => !revenue.pendingSync && revenue.addDateFormatted === selectedMonthRef.current);
       const merged = new Map(previous.map(revenue => [revenue.id, revenue]));
       additions.forEach(revenue => merged.set(revenue.id, revenue));
       return Array.from(merged.values());

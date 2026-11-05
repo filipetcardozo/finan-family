@@ -11,7 +11,14 @@
     "start": "next start",
     "lint": "next lint",
     "test:recurring": "node --test tests/recurring.test.cjs",
-    "test:installments": "node --test tests/installments.test.cjs"
+    "test:installments": "node --test tests/installments.test.cjs",
+    "test:search": "node --test tests/transactionSearch.test.cjs",
+    "test:monthly-fixed": "node --test tests/monthlyFixed.test.cjs",
+    "test:monthly-analysis": "node --test tests/monthlyExpenseAnalysis.test.cjs",
+    "test:offline": "node --test tests/offline.test.cjs",
+    "test:theme": "node --test tests/theme.test.cjs",
+    "test:transactions": "node --test tests/transactions.test.cjs",
+    "test:expense-deletion": "node --test tests/expenseDeletion.test.cjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -55,6 +62,8 @@
     "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-n": "^15.0.0",
     "eslint-plugin-promise": "^6.0.0",
-    "eslint-plugin-react": "^7.32.2"
+    "eslint-plugin-react": "^7.32.2",
+    "fake-indexeddb": "^6.2.4",
+    "react-test-renderer": "^18.2.0"
   }
 }

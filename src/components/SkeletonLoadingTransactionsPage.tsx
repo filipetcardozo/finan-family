@@ -21,9 +21,9 @@ export const LoadingTransactionsPage: React.FC<Props> = ({ type }) => {
         <Card
           sx={{
             borderRadius: 4,
-            border: '1px solid rgba(6, 42, 63, 0.08)',
-            background: 'linear-gradient(136deg, #082b43 0%, #0f6a72 48%, #15917c 100%)',
-            color: '#eefcff',
+            border: '1px solid var(--border)',
+            background: 'var(--hero)',
+            color: 'var(--nav-text)',
           }}
         >
           <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
@@ -37,7 +37,7 @@ export const LoadingTransactionsPage: React.FC<Props> = ({ type }) => {
               <Chip
                 label={<Skeleton variant='text' width={110} sx={{ bgcolor: 'rgba(213, 248, 255, .35)' }} />}
                 sx={{
-                  color: '#d5f8ff',
+                  color: 'var(--nav-muted)',
                   borderColor: 'rgba(213, 248, 255, .45)',
                   backgroundColor: 'rgba(213, 248, 255, .12)',
                   maxWidth: 'fit-content',
@@ -62,8 +62,8 @@ export const LoadingTransactionsPage: React.FC<Props> = ({ type }) => {
               variant='outlined'
               sx={{
                 borderRadius: 4,
-                borderColor: 'rgba(6, 42, 63, 0.10)',
-                boxShadow: '0 18px 30px -26px rgba(6, 42, 63, 0.5)',
+                borderColor: 'var(--border)',
+                boxShadow: 'var(--shadow)',
               }}
             >
               <CardContent sx={{ p: 2.5 }}>
@@ -84,8 +84,8 @@ export const LoadingTransactionsPage: React.FC<Props> = ({ type }) => {
           variant='outlined'
           sx={{
             borderRadius: 4,
-            borderColor: 'rgba(6, 42, 63, 0.10)',
-            boxShadow: '0 18px 30px -26px rgba(6, 42, 63, 0.5)',
+            borderColor: 'var(--border)',
+            boxShadow: 'var(--shadow)',
           }}
         >
           <CardContent sx={{ p: { xs: 1.2, sm: 1.8 } }}>
@@ -94,13 +94,13 @@ export const LoadingTransactionsPage: React.FC<Props> = ({ type }) => {
 
               <Box
                 sx={{
-                  border: '1px solid rgba(16, 50, 72, 0.12)',
+                  border: '1px solid var(--border)',
                   borderRadius: 3,
                   overflow: 'hidden',
-                  backgroundColor: '#fff',
+                  backgroundColor: 'var(--surface)',
                 }}
               >
-                <Box sx={{ px: 1.4, py: 1.1, backgroundColor: '#eef8fc', borderBottom: '1px solid rgba(16, 50, 72, 0.12)' }}>
+                <Box sx={{ px: 1.4, py: 1.1, backgroundColor: 'var(--subtle)', borderBottom: '1px solid var(--border)' }}>
                   <Skeleton variant='text' width='45%' />
                 </Box>
 
@@ -111,7 +111,7 @@ export const LoadingTransactionsPage: React.FC<Props> = ({ type }) => {
                       sx={{
                         py: 1.2,
                         px: 0.8,
-                        borderBottom: item < 6 ? '1px solid rgba(16, 50, 72, 0.08)' : 'none',
+                        borderBottom: item < 6 ? '1px solid var(--border)' : 'none',
                       }}
                     >
                       <Skeleton variant='text' width={`${70 - item * 5}%`} />

@@ -4,6 +4,7 @@ import type { CategoryOption as AppCategoryOption } from '../../constants/catego
 export type CategoryOption = AppCategoryOption;
 
 export type TransactionFormValues = {
+  isMonthlyFixed?: boolean;
   addDate: Dayjs | null;
   addDateFormatted: string;
   description: string;

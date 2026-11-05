@@ -6,7 +6,7 @@ import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import type { FormikProps } from 'formik';
 import { CurrencyInput } from '../InputCurrency';
-import { CategoryAutocomplete } from './CategoryAutocomplete';
+import { CategorySelect } from './CategorySelect';
 import type { CategoryOption, TransactionFormValues } from './types';
 
 interface TransactionFormFieldsProps<T extends TransactionFormValues> {
@@ -17,8 +17,9 @@ interface TransactionFormFieldsProps<T extends TransactionFormValues> {
   onCategoryChange(value: string): void;
   groupBy?: (option: CategoryOption) => string;
   valueLabel?: string;
-  onCategoryOpen?(): void;
   valueInputRef?: React.Ref<HTMLInputElement>;
+  autoFocusValue?: boolean;
+  allowMonthlyFixed?: boolean;
 }
 
 export function TransactionFormFields<T extends TransactionFormValues>({
@@ -29,24 +30,28 @@ export function TransactionFormFields<T extends TransactionFormValues>({
   onCategoryChange,
   groupBy,
   valueLabel,
-  onCategoryOpen,
   valueInputRef,
+  autoFocusValue = true,
+  allowMonthlyFixed = false,
 }: TransactionFormFieldsProps<T>) {
+  const isMonthlyFixed = allowMonthlyFixed && Boolean(form.values.isMonthlyFixed);
   return (
     <Stack spacing={stackSpacing}>
-      <CategoryAutocomplete
+      <CategorySelect
         options={categoryOptions}
         value={categoryValue}
         onChange={onCategoryChange}
         groupBy={groupBy}
-        onOpen={onCategoryOpen}
       />
 
-      <CurrencyInput nameOfKeyValue="value" form={form} label={valueLabel} inputRef={valueInputRef} autoFocus />
+      <CurrencyInput nameOfKeyValue="value" form={form} label={valueLabel} inputRef={valueInputRef} autoFocus={autoFocusValue} />
 
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-BR">
         <MobileDatePicker
-          label="Data"
+          key={isMonthlyFixed ? 'month' : 'day'}
+          label={isMonthlyFixed ? 'Mês de referência' : 'Data'}
+          views={isMonthlyFixed ? ['year', 'month'] : ['year', 'month', 'day']}
+          inputFormat={isMonthlyFixed ? 'MM/YYYY' : 'DD/MM/YYYY'}
           value={form.values.addDate}
           onChange={(value) => {
             form.setFieldValue('addDate', value);

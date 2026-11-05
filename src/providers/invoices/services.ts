@@ -5,6 +5,7 @@ import { getAuth } from "firebase/auth";
 import { firebaseApp, database } from "../../../firebaseConfig";
 import { deleteInvoiceTypes, getAllInvoicesTypes, getInvoiceTypes, getUserInvoicesTypes, IInvoice, updateInvoiceTypes } from "./types";
 import dayjs from 'dayjs';
+import { createLaunchId, queueTransactions } from '../offline/launches';
 
 export const getAllInvoices: getAllInvoicesTypes = async () => {
   const query = await getDocs(collection(database, "invoices"));
@@ -63,22 +64,21 @@ export const getInvoice: getInvoiceTypes = async (invoiceId: string) => {
 }
 
 export const updateInvoice: updateInvoiceTypes = async (invoice: IInvoice) => {
-  let newInvoice: any = { ...invoice }
+  if (invoice.pendingSync) throw new Error('Aguarde a sincronização para editar.');
+  const { pendingSync, ...stored } = invoice;
+  let newInvoice: any = { ...stored }
   newInvoice.addDate = newInvoice.addDate?.toString()
   const docRef = doc(database, 'invoices', newInvoice.id);
   await updateDoc(docRef, newInvoice);
 }
 
 export const deleteInvoice: deleteInvoiceTypes = async (invoiceId: string) => {
+  if (!navigator.onLine) throw new Error('Conecte-se para excluir.');
   await deleteDoc(doc(database, "invoices", invoiceId));
 }
 
 
-export async function putInvoice(invoice: IInvoice) {
-  let newInvoice: any = { ...invoice }
-  newInvoice.addDate = newInvoice.addDate?.toString()
-  const docRef = await addDoc(collection(database, 'invoices'), newInvoice);
-  return {
-    ...invoice, id: docRef.id
-  };
+export async function putInvoice(invoice: IInvoice, id = createLaunchId('invoices')) {
+  const [saved] = await queueTransactions('invoices', [{ ...invoice, id }]);
+  return saved;
 }

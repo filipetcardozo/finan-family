@@ -2,9 +2,10 @@ import Head from 'next/head'
 import React, { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { SignInType, useAuth } from '../hooks/useAuth';
-import { TextField, Container, Grid } from '@mui/material';
+import { Box, TextField, Container, Grid } from '@mui/material';
 import { useFormik } from 'formik';
 import { LoadingButton } from '@mui/lab';
+import { BrandLogo } from '../components/BrandLogo';
 
 export default function Login() {
   const router = useRouter()
@@ -30,8 +31,11 @@ export default function Login() {
       <meta name="viewport" content="initial-scale=1.0, width=device-width" />
     </Head>
     <Container maxWidth='xs'>
+      <Box sx={{ mt: 6, mb: 4, display: 'flex', justifyContent: 'center' }}>
+        <BrandLogo showName size={48} />
+      </Box>
       <form onSubmit={formik.handleSubmit}>
-        <Grid container gap={3} mt={5}>
+        <Grid container gap={3}>
           <Grid item xs={12}>
             <TextField id="email" label="Email" variant="outlined" size='small'
               fullWidth

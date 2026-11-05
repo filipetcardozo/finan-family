@@ -3,6 +3,8 @@ import Dialog from '@mui/material/Dialog';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import { useFormik } from 'formik';
 import 'dayjs/locale/pt-br';
 import { useSnackbar } from 'notistack';
@@ -14,13 +16,16 @@ import { RevenuesContext } from '../../contexts/revenues';
 import { getCategoryGroupLabel } from '../../utils/categoryGroupLabels';
 import type { IInvoice } from '../../providers/invoices/types';
 import { putInvoice, updateInvoice } from '../../providers/invoices/services';
-import { createInstallmentPurchaseId, putInstallmentInvoices } from '../../providers/invoices/installments';
-import { isValidInstallmentCount } from '../../utils/installments';
+import { createInstallmentPurchaseId, getInstallmentPurchaseInvoices, queueInstallmentInvoices, updateInstallmentPurchase } from '../../providers/invoices/installments';
+import { createLaunchId } from '../../providers/offline/launches';
+import { formatInstallmentDescription, getInstallmentBaseDescription, getInstallmentPosition, getInstallmentPurchaseId, isInstallmentInvoice, isValidInstallmentCount } from '../../utils/installments';
 import type { IRevenue } from '../../providers/revenues/types';
 import { putRevenue, updateRevenue } from '../../providers/revenues/services';
 import { TabPanel } from './TabPanel';
 import { TransactionFormSection } from './TransactionFormSection';
 import { InstallmentOptions } from './InstallmentOptions';
+import { MonthlyFixedOption } from './MonthlyFixedOption';
+import { InstallmentEditOptions, InstallmentEditScope } from './InstallmentEditOptions';
 import {
   getDefaultAddDateBySelectedMonth,
   primaryActionSx,
@@ -40,12 +45,13 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
   const { dateToAnalyze } = useContext(MonthSelectedContext);
   const { expenseCategoryOptions, revenueCategoryOptions } = useContext(CategoriesContext);
 
-  const { handleAddInvoices, handleUpdateInvoice } = useContext(ExpensesContext);
+  const { handleAddInvoices, handleUpdateInvoices } = useContext(ExpensesContext);
   const { handleAddRevenue, handleUpdateRevenue } = useContext(RevenuesContext);
 
   const defaultAddDate = getDefaultAddDateBySelectedMonth(dateToAnalyze);
 
   const initialValuesExpenseForm: IInvoice = {
+    isMonthlyFixed: false,
     addDate: defaultAddDate,
     addDateFormatted: defaultAddDate.format('MM/YYYY').toString(),
     description: '',
@@ -66,52 +72,90 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
   };
 
   const [loadingButton, setLoadingButton] = React.useState(false);
-  const [categoryNearTop, setCategoryNearTop] = React.useState(false);
-  const handleCategoryOpen = React.useCallback(() => setCategoryNearTop(true), []);
   const [installmentPurchase, setInstallmentPurchase] = React.useState(false);
   const [installmentCount, setInstallmentCount] = React.useState('2');
   const installmentPurchaseId = React.useRef<string | null>(null);
+  const expenseLaunchId = React.useRef<string | null>(null);
+  const revenueLaunchId = React.useRef<string | null>(null);
   const submittingExpense = React.useRef(false);
+  const submittingRevenue = React.useRef(false);
   const expenseValueInput = React.useRef<HTMLInputElement>(null);
   const revenueValueInput = React.useRef<HTMLInputElement>(null);
   const validInstallments = isValidInstallmentCount(Number(installmentCount));
+  const editingInstallment = Boolean(invoice && isInstallmentInvoice(invoice));
+  const canEditPurchase = editingInstallment && Boolean(invoice && getInstallmentPurchaseId(invoice));
+  const [installmentEditScope, setInstallmentEditScope] = React.useState<InstallmentEditScope>('all');
+  const [purchaseInvoices, setPurchaseInvoices] = React.useState<IInvoice[] | null>(null);
+  const [purchaseLoadError, setPurchaseLoadError] = React.useState('');
+  const [purchaseLoadAttempt, setPurchaseLoadAttempt] = React.useState(0);
+  const updatingAllInstallments = canEditPurchase && installmentEditScope === 'all';
 
   useEffect(() => {
-    setCategoryNearTop(false);
     setInstallmentPurchase(false);
     setInstallmentCount('2');
+    setInstallmentEditScope('all');
     installmentPurchaseId.current = null;
+    expenseLaunchId.current = null;
+    revenueLaunchId.current = null;
   }, [open, invoice?.id, revenue?.id, dateToAnalyze]);
 
+  useEffect(() => {
+    if (!open || !invoice || !canEditPurchase) return;
+    let cancelled = false;
+    setPurchaseInvoices(null);
+    setPurchaseLoadError('');
+    getInstallmentPurchaseInvoices(uid, invoice)
+      .then(entries => { if (!cancelled) setPurchaseInvoices(entries); })
+      .catch(() => { if (!cancelled) setPurchaseLoadError('Não foi possível carregar as parcelas desta compra.'); });
+    return () => { cancelled = true; };
+  }, [open, invoice, canEditPurchase, uid, purchaseLoadAttempt]);
+
   const closeWhenIdle = () => {
-    if (!loadingButton && !submittingExpense.current) handleClose();
+    if (!loadingButton && !submittingExpense.current && !submittingRevenue.current) handleClose();
   };
 
   const formExpense = useFormik({
     initialValues: initialValuesExpenseForm,
     onSubmit: async (values) => {
       if (submittingExpense.current) return;
+      if (invoice?.id && (invoice.pendingSync || !navigator.onLine)) {
+        enqueueSnackbar('Aguarde a conexão e a sincronização para editar.', { variant: 'info' });
+        return;
+      }
+      if (values.isMonthlyFixed && !values.addDate?.isValid()) {
+        enqueueSnackbar('Selecione o mês de referência da despesa.', { variant: 'error' });
+        return;
+      }
       if (!invoice?.id && installmentPurchase && !validInstallments) {
         enqueueSnackbar('Revise a quantidade de parcelas.', { variant: 'error' });
         return;
       }
+      if (updatingAllInstallments && (!purchaseInvoices || purchaseLoadError)) return;
       submittingExpense.current = true;
       setLoadingButton(true);
 
       if (invoice && invoice.id) {
-        await updateInvoice({ ...formExpense.values })
-          .then(() => {
-            enqueueSnackbar('Despesa alterada', {
+        const position = getInstallmentPosition(invoice);
+        const editedInvoice = {
+          ...values,
+          description: editingInstallment ? formatInstallmentDescription(values.description, position.number, position.count) : values.description,
+        };
+        const update = updatingAllInstallments
+          ? updateInstallmentPurchase(uid, invoice, values)
+          : updateInvoice(editedInvoice).then(() => [editedInvoice]);
+        await update
+          .then(updatedInvoices => {
+            enqueueSnackbar(updatingAllInstallments ? `${updatedInvoices.length} parcelas atualizadas` : 'Despesa alterada', {
               autoHideDuration: 2000,
               variant: 'success',
               anchorOrigin: { horizontal: 'center', vertical: 'top' },
             });
-            if (handleUpdateInvoice) handleUpdateInvoice({ ...formExpense.values });
+            handleUpdateInvoices(updatedInvoices);
             handleClose();
           })
           .catch((err) => {
             console.log(err);
-            enqueueSnackbar('Ops... tivemos um problema.', {
+            enqueueSnackbar(updatingAllInstallments ? 'Não foi possível atualizar as parcelas. Tente novamente.' : 'Ops... tivemos um problema.', {
               autoHideDuration: 2000,
               variant: 'error',
               anchorOrigin: { horizontal: 'center', vertical: 'top' },
@@ -126,14 +170,15 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
         let creation: Promise<IInvoice[]>;
         if (installmentPurchase) {
           if (!installmentPurchaseId.current) installmentPurchaseId.current = createInstallmentPurchaseId();
-          creation = putInstallmentInvoices(newValues, Number(installmentCount), installmentPurchaseId.current);
+          creation = queueInstallmentInvoices(newValues, Number(installmentCount), installmentPurchaseId.current);
         } else {
-          creation = putInvoice(newValues).then(createdInvoice => [createdInvoice]);
+          if (!expenseLaunchId.current) expenseLaunchId.current = createLaunchId('invoices');
+          creation = putInvoice(newValues, expenseLaunchId.current).then(createdInvoice => [createdInvoice]);
         }
 
         await creation
           .then((createdInvoices) => {
-            enqueueSnackbar(installmentPurchase ? 'Compra parcelada lançada' : 'Despesa lançada', {
+            enqueueSnackbar(navigator.onLine ? (installmentPurchase ? 'Compra parcelada salva' : 'Despesa salva') : 'Salvo no dispositivo', {
               autoHideDuration: 2000,
               variant: 'success',
               anchorOrigin: { horizontal: 'center', vertical: 'top' },
@@ -143,8 +188,8 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
             formExpense.setFieldValue('value', null);
             handleClose();
           })
-          .catch(() => {
-            enqueueSnackbar('Ops... tivemos um problema.', {
+          .catch((error) => {
+            enqueueSnackbar(error instanceof Error ? error.message : 'Não foi possível salvar o lançamento.', {
               autoHideDuration: 2000,
               variant: 'error',
               anchorOrigin: { horizontal: 'center', vertical: 'top' },
@@ -161,6 +206,12 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
   const formRevenue = useFormik({
     initialValues: initialValuesRevenueForm,
     onSubmit: async (values) => {
+      if (submittingRevenue.current) return;
+      if (revenue?.id && (revenue.pendingSync || !navigator.onLine)) {
+        enqueueSnackbar('Aguarde a conexão e a sincronização para editar.', { variant: 'info' });
+        return;
+      }
+      submittingRevenue.current = true;
       setLoadingButton(true);
 
       if (revenue && revenue.id) {
@@ -183,14 +234,16 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
             });
           })
           .finally(() => {
+            submittingRevenue.current = false;
             setLoadingButton(false);
           });
       } else {
         const newValues = { ...values, userId: uid };
 
-        await putRevenue(newValues)
+        if (!revenueLaunchId.current) revenueLaunchId.current = createLaunchId('revenues');
+        await putRevenue(newValues, revenueLaunchId.current)
           .then((createdRevenue) => {
-            enqueueSnackbar('Receita lançada', {
+            enqueueSnackbar(navigator.onLine ? 'Receita salva' : 'Salvo no dispositivo', {
               autoHideDuration: 2000,
               variant: 'success',
               anchorOrigin: { horizontal: 'center', vertical: 'top' },
@@ -200,14 +253,15 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
             formRevenue.setFieldValue('value', null);
             handleClose();
           })
-          .catch(() => {
-            enqueueSnackbar('Ops... tivemos um problema.', {
+          .catch((error) => {
+            enqueueSnackbar(error instanceof Error ? error.message : 'Não foi possível salvar o lançamento.', {
               autoHideDuration: 2000,
               variant: 'error',
               anchorOrigin: { horizontal: 'center', vertical: 'top' },
             });
           })
           .finally(() => {
+            submittingRevenue.current = false;
             setLoadingButton(false);
           });
       }
@@ -216,13 +270,11 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
 
   useEffect(() => {
     if (invoice && invoice.id) {
-      formExpense.setFieldValue('addDate', invoice.addDate);
-      formExpense.setFieldValue('addDateFormatted', invoice.addDateFormatted);
-      formExpense.setFieldValue('description', invoice.description);
-      formExpense.setFieldValue('invoiceCategory', invoice.invoiceCategory);
-      formExpense.setFieldValue('value', invoice.value);
-      formExpense.setFieldValue('userId', invoice.userId);
-      formExpense.setFieldValue('id', invoice.id);
+      formExpense.setValues({
+        ...invoice,
+        description: isInstallmentInvoice(invoice) ? getInstallmentBaseDescription(invoice.description) : invoice.description,
+        isMonthlyFixed: invoice.isMonthlyFixed ?? false,
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invoice]);
@@ -265,22 +317,23 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
   const [tabSelected, setTabSelected] = React.useState(0);
 
   const focusValueAfterOpen = (dialog: HTMLElement) => {
-    if (!open) return;
+    if (!open || invoice?.id || revenue?.id) return;
     const input = tabSelected === 0 ? expenseValueInput.current : revenueValueInput.current;
     if (!input?.isConnected || input.matches(':disabled')) return;
     const activeElement = dialog.ownerDocument.activeElement;
     // Do not steal focus if the user already chose another field during opening.
     if (activeElement && activeElement !== input && dialog.contains(activeElement)
-      && activeElement.matches('input, textarea, button, a[href], [role="combobox"]')) return;
+      && activeElement.matches('input, textarea, select, button, a[href], [role="combobox"]')) return;
     input.focus({ preventScroll: true });
   };
 
   useEffect(() => {
-    if (revenue?.id) setTabSelected(1);
-  }, [revenue?.id]);
+    if (!open) return;
+    if (invoice?.id) setTabSelected(0);
+    else if (revenue?.id) setTabSelected(1);
+  }, [open, invoice?.id, revenue?.id]);
 
   const handleChangeTab = (_event: React.SyntheticEvent, newValue: number) => {
-    setCategoryNearTop(false);
     setTabSelected(newValue);
   };
 
@@ -296,11 +349,19 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
     'aria-controls': `tabpanel-${index}`,
   });
 
+  const monthlyFixedOption = (
+    <MonthlyFixedOption
+      checked={Boolean(formExpense.values.isMonthlyFixed)}
+      disabled={loadingButton}
+      onChange={checked => formExpense.setFieldValue('isMonthlyFixed', checked)}
+    />
+  );
+
   return (
-    <Dialog open={open} onClose={closeWhenIdle} fullWidth maxWidth="sm"
+    <Dialog open={open} disableEscapeKeyDown fullWidth maxWidth="sm"
+      aria-label={tabSelected === 0 ? 'Lançamento de despesa' : 'Lançamento de receita'}
       TransitionProps={{ onEntered: focusValueAfterOpen }}
-      sx={{ '& .MuiDialog-container': { alignItems: { xs: categoryNearTop ? 'flex-start' : 'center', sm: 'center' } } }}
-      PaperProps={{ sx: { mt: { xs: categoryNearTop ? 1 : 4, sm: 4 } } }}
+      PaperProps={{ sx: { borderRadius: 3 } }}
     >
       <div>
         <Box
@@ -309,22 +370,39 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
             pt: 1.2,
             pb: 0.6,
             background:
-              'linear-gradient(136deg, rgba(8,43,67,0.06) 0%, rgba(15,106,114,0.08) 48%, rgba(21,145,124,0.08) 100%)',
-            borderBottom: '1px solid rgba(8, 43, 67, 0.12)',
+              'var(--subtle)',
+            borderBottom: '1px solid var(--border)',
           }}
         >
           <Tabs
             value={tabSelected}
             onChange={handleChangeTab}
-            aria-label="tab revenue or expense"
+            aria-label="Tipo de lançamento"
             centered
             variant="fullWidth"
             sx={{
-              minHeight: 40,
+              minHeight: 48,
+              '& .MuiTab-root': {
+                minHeight: 48,
+                minWidth: 0,
+                borderRadius: 2,
+                fontSize: 14,
+                fontWeight: 500,
+                textTransform: 'none',
+                color: 'var(--muted)',
+                transition: 'color .2s, background-color .2s, font-size .2s',
+                '&.Mui-selected': {
+                  fontSize: 17,
+                  fontWeight: 700,
+                  color: 'var(--primary-text)',
+                  backgroundColor: 'var(--surface)',
+                  boxShadow: 'var(--shadow)',
+                },
+              },
               '& .MuiTabs-indicator': {
                 height: 3,
                 borderRadius: 3,
-                background: 'linear-gradient(90deg, #0f6a72 0%, #15917c 100%)',
+                background: 'linear-gradient(90deg, var(--primary), var(--secondary))',
               },
             }}
           >
@@ -332,61 +410,69 @@ export const AddInvoiceModal = ({ open, handleClose, invoice, revenue }: IProps)
               label="Despesa"
               disabled={loadingButton}
               {...a11yProps(0)}
-              sx={{ minHeight: 40, fontSize: 12.5, fontWeight: 700, color: '#2a4f64' }}
             />
             <Tab
               label="Receita"
               disabled={loadingButton}
               {...a11yProps(1)}
-              sx={{ minHeight: 40, fontSize: 12.5, fontWeight: 700, color: '#2a4f64' }}
             />
           </Tabs>
         </Box>
 
         <TabPanel value={tabSelected} index={0}>
           <TransactionFormSection
-            title={invoice && invoice.id ? 'Alterar despesa' : 'Inserir despesa'}
             form={formExpense}
             onSubmit={formExpense.handleSubmit}
-            dialogContentSx={{ pt: 2, pb: 1 }}
+            dialogContentSx={{ pt: 3, pb: 1 }}
             stackSpacing={2}
             categoryOptions={expenseCategoryOptions}
             categoryValue={formExpense.values.invoiceCategory}
             onCategoryChange={(value) => formExpense.setFieldValue('invoiceCategory', value)}
             groupBy={expenseGroupBy}
             loading={loadingButton}
-            submitLabel={invoice?.id ? 'Atualizar' : installmentPurchase
-              ? (validInstallments ? `Lançar ${Number(installmentCount)} parcelas` : 'Lançar parcelas') : 'Inserir'}
-            submitDisabled={!invoice?.id && installmentPurchase && !validInstallments}
-            valueLabel={!invoice?.id && installmentPurchase ? 'Valor da parcela' : undefined}
-            onCategoryOpen={handleCategoryOpen}
+            submitLabel={invoice?.id ? (editingInstallment
+              ? (updatingAllInstallments ? (purchaseInvoices ? `Atualizar ${purchaseInvoices.length} ${purchaseInvoices.length === 1 ? 'parcela' : 'parcelas'}` : 'Atualizar parcelas') : 'Atualizar parcela')
+              : 'Atualizar despesa') : installmentPurchase
+              ? (validInstallments ? `Lançar ${Number(installmentCount)} parcelas` : 'Lançar parcelas') : 'Lançar despesa'}
+            submitIcon={invoice?.id ? null : <AddRoundedIcon />}
+            submitDisabled={(!invoice?.id && installmentPurchase && !validInstallments) || (updatingAllInstallments && (!purchaseInvoices || Boolean(purchaseLoadError)))}
+            valueLabel={editingInstallment || (!invoice?.id && installmentPurchase) ? 'Valor da parcela' : undefined}
             valueInputRef={expenseValueInput}
+            autoFocusValue={!invoice?.id && !revenue?.id}
+            allowMonthlyFixed={!editingInstallment && !installmentPurchase}
             handleClose={closeWhenIdle}
             secondaryActionSx={secondaryActionSx}
             primaryActionSx={primaryActionSx}
           >
-            {!invoice?.id && <InstallmentOptions
+            {editingInstallment && (canEditPurchase ? <InstallmentEditOptions
+              scope={installmentEditScope} onChange={setInstallmentEditScope}
+              loading={!purchaseInvoices && !purchaseLoadError} disabled={loadingButton}
+              error={purchaseLoadError} onRetry={() => setPurchaseLoadAttempt(attempt => attempt + 1)}
+            /> : <Alert severity='info' sx={{ mt: 2 }}>Esta parcela não tem vínculo com uma compra.</Alert>)}
+            {invoice?.id ? (!editingInstallment && <Box sx={{ mt: 1 }}>{monthlyFixedOption}</Box>) : <InstallmentOptions
               checked={installmentPurchase} count={installmentCount} value={formExpense.values.value}
               disabled={loadingButton} onCheckedChange={setInstallmentPurchase} onCountChange={setInstallmentCount}
-            />}
+            >
+              {!installmentPurchase && monthlyFixedOption}
+            </InstallmentOptions>}
           </TransactionFormSection>
         </TabPanel>
 
         <TabPanel value={tabSelected} index={1}>
           <TransactionFormSection
-            title={revenue && revenue.id ? 'Alterar receita' : 'Inserir receita'}
             form={formRevenue}
             onSubmit={formRevenue.handleSubmit}
-            dialogContentSx={{ pt: 2, pb: 1 }}
+            dialogContentSx={{ pt: 3, pb: 1 }}
             stackSpacing={2}
             categoryOptions={revenueCategoryOptions}
             categoryValue={formRevenue.values.revenueCategory}
             onCategoryChange={(value) => formRevenue.setFieldValue('revenueCategory', value)}
             groupBy={revenueGroupBy}
             loading={loadingButton}
-            submitLabel={revenue && revenue.id ? 'Atualizar' : 'Inserir'}
-            onCategoryOpen={handleCategoryOpen}
+            submitLabel={revenue?.id ? 'Atualizar receita' : 'Lançar receita'}
+            submitIcon={revenue?.id ? null : <AddRoundedIcon />}
             valueInputRef={revenueValueInput}
+            autoFocusValue={!invoice?.id && !revenue?.id}
             handleClose={closeWhenIdle}
             secondaryActionSx={secondaryActionSx}
             primaryActionSx={primaryActionSx}

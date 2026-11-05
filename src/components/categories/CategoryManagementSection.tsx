@@ -122,7 +122,7 @@ export function CategoryManagementSection({
   return (
     <Stack spacing={1.5}>
       <Stack direction='row' alignItems='center' justifyContent='space-between' spacing={1}>
-        <Typography sx={{ fontWeight: 700, color: '#123047' }}>{title}</Typography>
+        <Typography sx={{ fontWeight: 700, color: 'var(--text)' }}>{title}</Typography>
         {headerAction}
       </Stack>
 
@@ -184,11 +184,11 @@ export function CategoryManagementSection({
                           width: 28,
                           height: 32,
                           p: 0,
-                          color: '#0f6a72',
+                          color: 'var(--primary)',
                           borderRadius: 1,
                           alignSelf: 'center',
                           '&:hover': {
-                            backgroundColor: 'rgba(15, 106, 114, 0.08)',
+                            backgroundColor: 'var(--primary-soft)',
                           },
                         }}
                       >
@@ -202,7 +202,7 @@ export function CategoryManagementSection({
           </SortableContext>
         </DndContext>
       ) : (
-        <Typography sx={{ fontSize: 14, color: '#607d92' }}>{emptyText}</Typography>
+        <Typography sx={{ fontSize: 14, color: 'var(--muted)' }}>{emptyText}</Typography>
       )}
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-start', pt: 0.5 }}>
@@ -213,7 +213,8 @@ export function CategoryManagementSection({
           sx={{
             borderRadius: 999,
             px: 2,
-            background: 'linear-gradient(136deg, #082b43 0%, #0f6a72 48%, #15917c 100%)',
+            background: 'var(--action)',
+            color: 'var(--action-text)',
           }}
         >
           Nova categoria

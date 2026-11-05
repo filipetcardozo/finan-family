@@ -10,7 +10,7 @@ interface Props {
 }
 
 export const PieChart: React.FC<Props> = ({ expenses }) => {
-  const COLORS = ['#d1495b', '#edae49', '#00798c', '#30638e', '#4f772d', '#6c4f7d', '#ef5d60', '#4f6d7a'];
+  const COLORS = Array.from({ length: 8 }, (_, index) => `var(--chart-${index})`);
   const RADIAN = Math.PI / 180;
 
   const isInvestmentCategory = (category?: string) => {
@@ -54,14 +54,14 @@ export const PieChart: React.FC<Props> = ({ expenses }) => {
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
     return (
-      <text fontSize={12} x={x} y={y} fill='white' textAnchor='middle' dominantBaseline='central'>
+      <text fontSize={12} x={x} y={y} fill='var(--chart-label)' textAnchor='middle' dominantBaseline='central'>
         {`${(percent * 100).toFixed(0)}%`}
       </text>
     );
   };
 
   if (dataPieChart.length === 0) {
-    return <Typography sx={{ fontSize: 14, color: '#607d92' }}>Sem despesas para gerar o gráfico neste mês.</Typography>;
+    return <Typography sx={{ fontSize: 14, color: 'var(--muted)' }}>Sem despesas para gerar o gráfico neste mês.</Typography>;
   }
 
   return (
@@ -72,8 +72,8 @@ export const PieChart: React.FC<Props> = ({ expenses }) => {
           maxHeight: 220,
           overflowY: 'auto',
           borderRadius: 2,
-          border: '1px solid rgba(16, 50, 72, 0.09)',
-          backgroundColor: '#ffffffb2',
+          border: '1px solid var(--border)',
+          backgroundColor: 'var(--surface)',
         }}
       >
         <List dense>
@@ -85,7 +85,7 @@ export const PieChart: React.FC<Props> = ({ expenses }) => {
                 />
                 <ListItemText
                   primary={
-                    <Box component='span' sx={{ fontSize: 12.5, color: '#103248' }}>
+                    <Box component='span' sx={{ fontSize: 12.5, color: 'var(--text)' }}>
                       {v.expenseCategory}: {formatterCurrency(v.value)}
                     </Box>
                   }
@@ -108,6 +108,7 @@ export const PieChart: React.FC<Props> = ({ expenses }) => {
               outerRadius='90%'
               label={renderCustomizedLabel}
               labelLine={false}
+              stroke='var(--surface)'
             >
               {dataPieChart.map((entry, index) => (
                 <Cell key={`${entry.expenseCategory}-${entry.value}`} fill={COLORS[index % COLORS.length]} />

@@ -5,6 +5,7 @@ export type TransactionKind = 'expense' | 'revenue';
 export type FinancialTransaction = IInvoice | IRevenue;
 
 export interface RecurringTemplate {
+  isMonthlyFixed?: boolean;
   id: string;
   kind: TransactionKind;
   category: string;

@@ -1,22 +1,19 @@
 ﻿import React, { useContext, useMemo, useState } from 'react';
 import {
   Box,
-  Button,
   Card,
+  CardActionArea,
   CardContent,
   Chip,
   Collapse,
   Container,
-  CssBaseline,
   Divider,
   IconButton,
   LinearProgress,
   Stack,
-  TextField,
   Typography,
 } from '@mui/material';
 import Head from 'next/head';
-import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import TrendingDownRoundedIcon from '@mui/icons-material/TrendingDownRounded';
 import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
 import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
@@ -24,22 +21,28 @@ import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import SavingsRoundedIcon from '@mui/icons-material/SavingsRounded';
 import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import TimelineRoundedIcon from '@mui/icons-material/TimelineRounded';
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import { ExpensesContext } from '../contexts/expenses';
 import { RevenuesContext } from '../contexts/revenues';
 import { LayoutMobile } from '../components/AppLayoutMobile';
 import { PieChart } from '../components/ExpensesPieChart';
-import { ExpensesOfDay } from '../components/ExpensesOfDay';
+import { MonthlyExpensesTimeline } from '../components/MonthlyExpensesTimeline';
+import { MonthlyExpenseCharts } from '../components/MonthlyExpenseCharts';
 import { useProtectPage } from '../hooks/useAuth';
 import { LoadingHomePage } from '../components/SkeletonLoadingHomePage';
 import { formatterCurrency } from '../utils/formatters';
 import { MonthSelectedContext } from '../contexts/monthSelected';
+import { AddInvoiceModal } from '../components/ModalAddInvoice';
+import type { IInvoice } from '../providers/invoices/types';
+import { useOfflineSync } from '../contexts/offlineSync';
 
 type StatCardProps = {
   title: string;
   value: string;
   subtitle?: string;
   icon: React.ReactNode;
-  accent: string;
+  accent: 'income' | 'expense' | 'primary' | 'secondary';
   delay: string;
 };
 
@@ -49,8 +52,8 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon, accen
       variant='outlined'
       sx={{
         borderRadius: 4,
-        borderColor: 'rgba(6, 42, 63, 0.10)',
-        boxShadow: '0 18px 30px -26px rgba(6, 42, 63, 0.5)',
+        borderColor: 'var(--border)',
+        boxShadow: 'var(--shadow)',
         animation: 'fadeInUp .65s ease both',
         animationDelay: delay,
       }}
@@ -58,13 +61,13 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon, accen
       <CardContent sx={{ p: 2.5 }}>
         <Stack direction='row' justifyContent='space-between' alignItems='flex-start' spacing={2}>
           <Box>
-            <Typography sx={{ fontSize: 13, letterSpacing: '.04em', textTransform: 'uppercase', color: '#567086' }}>
+            <Typography sx={{ fontSize: 13, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--muted)' }}>
               {title}
             </Typography>
-            <Typography sx={{ mt: 0.5, fontSize: 23, fontWeight: 700, color: '#102435' }}>
+            <Typography sx={{ mt: 0.5, fontSize: 23, fontWeight: 700, color: 'var(--text)' }}>
               {value}
             </Typography>
-            <Typography sx={{ mt: 0.6, fontSize: 13, color: '#607d92' }}>
+            <Typography sx={{ mt: 0.6, fontSize: 13, color: 'var(--muted)' }}>
               {subtitle}
             </Typography>
           </Box>
@@ -76,8 +79,8 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon, accen
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: accent,
-              background: `${accent}18`,
+              color: `var(--${accent}-text)`,
+              background: `var(--${accent}-soft)`,
             }}
           >
             {icon}
@@ -94,17 +97,12 @@ export default function Home() {
   const { monthlyExpenses, invoices, loadingGetInvoices } = useContext(ExpensesContext);
   const { loadingGetRevenues, monthlyRevenues } = useContext(RevenuesContext);
   const { dateToAnalyze } = useContext(MonthSelectedContext);
+  const { online } = useOfflineSync();
+  const [editingExpense, setEditingExpense] = useState<IInvoice | undefined>();
 
   const [showValues, setShowValues] = useState(false);
   const [showFinancialHelp, setShowFinancialHelp] = useState(false);
-  const [selectedExpenseDate, setSelectedExpenseDate] = useState(() => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
-  });
+  const [monthlyExpensesExpanded, setMonthlyExpensesExpanded] = useState(true);
 
   const isInvestmentCategory = (category?: string) => {
     if (!category) {
@@ -149,10 +147,6 @@ export default function Home() {
     return monthlyRevenues - monthlyExpenses;
   }, [monthlyExpenses, monthlyRevenues]);
 
-  const monthLabel = useMemo(() => {
-    return new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(dateToAnalyze.toDate());
-  }, [dateToAnalyze]);
-
   const budgetUsage = useMemo(() => {
     if (monthlyRevenues <= 0) {
       return 0;
@@ -193,7 +187,7 @@ export default function Home() {
           positiveRate: 0,
           label: 'Sem receita no mês',
           emoji: '😶',
-          color: '#ffd8cf',
+          color: 'var(--hero-error)',
         },
         complex: {
           spentRate: 0,
@@ -215,28 +209,28 @@ export default function Home() {
 
     let simpleLabel = 'No limite';
     let simpleEmoji = '😐';
-    let simpleColor = '#fff3d4';
+    let simpleColor = 'var(--hero-warning)';
 
     if (positiveRate >= 20) {
       simpleLabel = 'Saldo bem positivo';
       simpleEmoji = '😁';
-      simpleColor = '#d4ffe2';
+      simpleColor = 'var(--hero-success)';
     } else if (positiveRate >= 10) {
       simpleLabel = 'Saldo positivo';
       simpleEmoji = '🙂';
-      simpleColor = '#dfffe9';
+      simpleColor = 'var(--hero-success)';
     } else if (positiveRate >= 0) {
       simpleLabel = 'Saldo curto, mas positivo';
       simpleEmoji = '😌';
-      simpleColor = '#fff3d4';
+      simpleColor = 'var(--hero-warning)';
     } else if (positiveRate >= -10) {
       simpleLabel = 'Saldo negativo';
       simpleEmoji = '😟';
-      simpleColor = '#ffe7d1';
+      simpleColor = 'var(--hero-warning)';
     } else {
       simpleLabel = 'Atenção: negativo alto';
       simpleEmoji = '😣';
-      simpleColor = '#ffd8cf';
+      simpleColor = 'var(--hero-error)';
     }
 
     const paceDiff = spentRate - expectedSpentRate;
@@ -274,10 +268,6 @@ export default function Home() {
     };
   }, [monthlyRevenues]);
 
-  const expensesOfSelectedDate = useMemo(() => {
-    return invoices.filter(invoice => invoice.addDate?.format('YYYY-MM-DD') === selectedExpenseDate);
-  }, [invoices, selectedExpenseDate]);
-
   const valueOrMask = (value: number, prefix = '') => {
     if (!showValues) {
       return '****';
@@ -290,9 +280,7 @@ export default function Home() {
     <>
       <Head>
         <title>Home</title>
-        <link rel='icon' href='/favicon.ico' />
       </Head>
-      <CssBaseline />
       <LayoutMobile tabSelected='/'>
         <Container maxWidth='lg'>
           {loadingGetInvoices || loadingGetRevenues ? (
@@ -303,7 +291,6 @@ export default function Home() {
                 position: 'relative',
                 px: { xs: 0.2, sm: 0.4 },
                 py: 0.5,
-                fontFamily: '"Avenir Next", "Trebuchet MS", "Century Gothic", sans-serif',
                 '@keyframes fadeInUp': {
                   from: { opacity: 0, transform: 'translateY(12px)' },
                   to: { opacity: 1, transform: 'translateY(0)' },
@@ -321,37 +308,29 @@ export default function Home() {
                   variant='outlined'
                   sx={{
                     borderRadius: 4,
-                    background: 'linear-gradient(136deg, #082b43 0%, #0f6a72 48%, #15917c 100%)',
-                    color: '#f6feff',
+                    background: 'var(--hero)',
+                    color: 'var(--hero-text)',
                     border: 'none',
-                    boxShadow: '0 24px 45px -30px rgba(3, 35, 56, 0.7)',
+                    boxShadow: 'var(--shadow)',
                     animation: 'fadeInUp .6s ease both',
                   }}
                 >
                   <CardContent sx={{ p: { xs: 2.4, sm: 3 } }}>
                     <Stack spacing={1.6}>
-                      <Stack
-                        direction={{ xs: 'column', sm: 'row' }}
-                        spacing={1.3}
-                        alignItems={{ xs: 'flex-start', sm: 'center' }}
-                        justifyContent='space-between'
-                      >
-                        <Box>
-                          <Typography sx={{ fontSize: { xs: 26, sm: 32 }, fontWeight: 700, lineHeight: 1.1 }}>
-                            Como estamos?
-                          </Typography>
-                        </Box>
-                        <Chip
-                          icon={<CalendarMonthRoundedIcon sx={{ color: '#d5f8ff !important' }} />}
-                          label={monthLabel}
-                          sx={{
-                            color: '#d5f8ff',
-                            borderColor: 'rgba(213, 248, 255, .4)',
-                            backgroundColor: 'rgba(213, 248, 255, .12)',
-                            textTransform: 'capitalize',
+                      <Stack direction='row' alignItems='center' justifyContent='space-between' spacing={1.5}>
+                        <Typography sx={{ fontSize: { xs: 26, sm: 32 }, fontWeight: 700, lineHeight: 1.1 }}>
+                          Como estamos?
+                        </Typography>
+                        <IconButton
+                          aria-label={showValues ? 'Ocultar valores' : 'Mostrar valores'}
+                          onClick={() => {
+                            if (showValues) setShowFinancialHelp(false);
+                            setShowValues(visible => !visible);
                           }}
-                          variant='outlined'
-                        />
+                          sx={{ width: 40, height: 40, flexShrink: 0, color: 'var(--hero-text)', bgcolor: 'rgba(255,255,255,.12)', '&:hover': { bgcolor: 'rgba(255,255,255,.22)' } }}
+                        >
+                          {showValues ? <VisibilityOffRoundedIcon /> : <VisibilityRoundedIcon />}
+                        </IconButton>
                       </Stack>
 
                       <Box>
@@ -369,12 +348,12 @@ export default function Home() {
                           <>
                             <Stack direction='row' spacing={0.6} alignItems='center' sx={{ mt: 0.25 }}>
                               <Typography sx={{ fontSize: 11.5, opacity: 0.8 }}>
-                                Análise simples: {financialAnalysis.simple.positiveRate.toFixed(0)}% da receita livre · {financialAnalysis.simple.label}
+                                {financialAnalysis.simple.positiveRate.toFixed(0)}% da receita livre · {financialAnalysis.simple.label}
                               </Typography>
                               <IconButton
                                 size='small'
                                 onClick={() => setShowFinancialHelp(prev => !prev)}
-                                sx={{ color: '#d2f3ff', p: 0.35 }}
+                                sx={{ color: 'var(--hero-accent)', p: 0.35 }}
                               >
                                 <InfoOutlinedIcon fontSize='inherit' />
                               </IconButton>
@@ -389,11 +368,11 @@ export default function Home() {
                                   backgroundColor: 'rgba(4, 34, 53, .28)',
                                 }}
                               >
-                                <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: '#d9f7ff' }}>
+                                <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'var(--hero-text)' }}>
                                   Como ler este resumo?
                                 </Typography>
                                 <Typography sx={{ mt: 0.45, fontSize: 12, opacity: 0.9 }}>
-                                  Análise simples: considera apenas o quanto sobrou positivo no mês em relação à receita.
+                                  Considera o saldo do mês em relação à receita.
                                 </Typography>
                                 <Typography sx={{ mt: 0.35, fontSize: 12, opacity: 0.9 }}>
                                   Agora: {formatterCurrency(financialAnalysis.simple.positiveAmount)} ({financialAnalysis.simple.positiveRate.toFixed(0)}% da receita).
@@ -410,42 +389,6 @@ export default function Home() {
                         )}
                       </Box>
 
-                      <Stack
-                        direction={{ xs: 'column', sm: 'row' }}
-                        spacing={1.2}
-                        alignItems={{ xs: 'flex-start', sm: 'center' }}
-                        justifyContent='space-between'
-                      >
-                        <Button
-                          variant='contained'
-                          onClick={() => {
-                            setShowValues(prev => {
-                              const next = !prev;
-
-                              if (!next) {
-                                setShowFinancialHelp(false);
-                              }
-
-                              return next;
-                            });
-                          }}
-                          startIcon={showValues ? <VisibilityOffRoundedIcon /> : <VisibilityRoundedIcon />}
-                          sx={{
-                            px: 2,
-                            py: 1,
-                            borderRadius: 10,
-                            minWidth: 172,
-                            fontWeight: 600,
-                            color: '#04374a',
-                            backgroundColor: '#d2f3ff',
-                            '&:hover': {
-                              backgroundColor: '#bbecff',
-                            },
-                          }}
-                        >
-                          {showValues ? 'Ocultar valores' : 'Mostrar valores'}
-                        </Button>
-                      </Stack>
                     </Stack>
                   </CardContent>
                 </Card>
@@ -454,8 +397,8 @@ export default function Home() {
                   variant='outlined'
                   sx={{
                     borderRadius: 4,
-                    borderColor: 'rgba(6, 42, 63, 0.08)',
-                    boxShadow: '0 18px 30px -26px rgba(6, 42, 63, 0.45)',
+                    borderColor: 'var(--border)',
+                    boxShadow: 'var(--shadow)',
                     animation: 'fadeInUp .65s ease both',
                     animationDelay: '110ms',
                   }}
@@ -463,23 +406,26 @@ export default function Home() {
                   <CardContent sx={{ p: { xs: 2.2, sm: 2.6 } }}>
                     <Stack spacing={1}>
                       <Stack direction='row' alignItems='center' justifyContent='space-between'>
-                        <Typography sx={{ fontSize: 15, fontWeight: 700, color: '#123047' }}>
+                        <Typography sx={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>
                           Consumo do orçamento
                         </Typography>
-                        <Typography sx={{ fontSize: 15, fontWeight: 700, color: '#19536e' }}>
+                        <Typography sx={{ fontSize: 15, fontWeight: 700, color: 'var(--primary-text)' }}>
                           {showValues ? `${budgetUsage.toFixed(0)}%` : '****'}
                         </Typography>
                       </Stack>
                       <LinearProgress
                         variant='determinate'
-                        value={budgetUsage}
+                        value={showValues ? budgetUsage : 100}
+                        aria-hidden={!showValues}
+                        aria-label='Consumo do orçamento'
                         sx={{
                           height: 10,
                           borderRadius: 8,
-                          backgroundColor: '#dceff8',
+                          backgroundColor: 'var(--track)',
                           '& .MuiLinearProgress-bar': {
+                            transition: showValues ? undefined : 'none',
                             borderRadius: 8,
-                            background: 'linear-gradient(90deg, #0b6c79 0%, #2aa287 100%)',
+                            background: 'linear-gradient(90deg, var(--primary), var(--secondary))',
                           },
                         }}
                       />
@@ -498,40 +444,47 @@ export default function Home() {
                     title='Receitas'
                     value={valueOrMask(monthlyRevenues)}
                     icon={<TrendingUpRoundedIcon />}
-                    accent='#127a49'
+                    accent='income'
                     delay='160ms'
                   />
                   <StatCard
                     title='Despesas'
                     value={valueOrMask(monthlyExpenses)}
                     icon={<TrendingDownRoundedIcon />}
-                    accent='#b83d2f'
+                    accent='expense'
                     delay='220ms'
                   />
-                  <StatCard
-                    title='Investimentos'
-                    value={valueOrMask(monthlyInvestments.realInvestments)}
-                    subtitle='Aplicado até agora'
-                    icon={<SavingsRoundedIcon />}
-                    accent='#176c6f'
-                    delay='280ms'
-                  />
-                  <StatCard
-                    title='Investimento planejado'
-                    value={valueOrMask(monthlyInvestments.plannedInvestments)}
-                    subtitle='Meta total do mês'
-                    icon={<InsightsRoundedIcon />}
-                    accent='#3f5e91'
-                    delay='340ms'
-                  />
+                  {monthlyInvestments.realInvestments !== 0 && (
+                    <StatCard
+                      title='Investimentos'
+                      value={valueOrMask(monthlyInvestments.realInvestments)}
+                      subtitle='Aplicado até agora'
+                      icon={<SavingsRoundedIcon />}
+                      accent='primary'
+                      delay='280ms'
+                    />
+                  )}
+                  {monthlyInvestments.plannedInvestments !== 0 && (
+                    <StatCard
+                      title='Investimento planejado'
+                      value={valueOrMask(monthlyInvestments.plannedInvestments)}
+                      subtitle='Meta total do mês'
+                      icon={<InsightsRoundedIcon />}
+                      accent='secondary'
+                      delay='340ms'
+                    />
+                  )}
                 </Box>
 
-                <Divider sx={{ borderColor: 'rgba(16, 36, 53, 0.1)' }} />
+                <MonthlyExpenseCharts expenses={invoices} month={dateToAnalyze} showValues={showValues} />
+
+                <Divider sx={{ borderColor: 'var(--border)' }} />
 
                 <Box
                   sx={{
                     display: 'grid',
-                    gridTemplateColumns: { xs: '1fr', md: '1.05fr 1fr' },
+                    gridTemplateColumns: { xs: '1fr', md: '1.15fr 1fr' },
+                    alignItems: 'start',
                     gap: 2,
                   }}
                 >
@@ -539,40 +492,38 @@ export default function Home() {
                     variant='outlined'
                     sx={{
                       borderRadius: 4,
-                      borderColor: 'rgba(6, 42, 63, 0.10)',
-                      boxShadow: '0 18px 30px -26px rgba(6, 42, 63, 0.5)',
+                      borderColor: 'var(--border)',
+                      boxShadow: 'var(--shadow)',
                       animation: 'fadeInUp .7s ease both',
                       animationDelay: '360ms',
                     }}
                   >
                     <CardContent sx={{ p: { xs: 2, sm: 2.4 } }}>
-                      <Stack direction='row' justifyContent='space-between' alignItems='center' spacing={1}>
-                        <Typography sx={{ fontSize: 18, fontWeight: 700, color: '#102435' }}>
-                          Despesas do dia
-                        </Typography>
-                        <TextField
-                          type='date'
-                          size='small'
-                          value={selectedExpenseDate}
-                          onChange={event => setSelectedExpenseDate(event.target.value)}
-                          InputLabelProps={{ shrink: true }}
-                          sx={{
-                            width: 142,
-                            '& .MuiInputBase-root': { height: 32, fontSize: 12 },
-                            '& input': { py: 0.7, px: 1 },
-                          }}
-                        />
-                      </Stack>
-                      <Typography sx={{ mt: 0.5, mb: 1.2, fontSize: 13, color: '#607d92' }}>
-                        Movimentações lançadas na data selecionada.
-                      </Typography>
-                      {expensesOfSelectedDate.length > 0 ? (
-                        <ExpensesOfDay expensesOfDay={expensesOfSelectedDate} />
-                      ) : (
-                        <Typography sx={{ fontSize: 14, color: '#607d92' }}>
-                          Nenhuma despesa registrada para esta data.
-                        </Typography>
-                      )}
+                      <CardActionArea
+                        onClick={() => setMonthlyExpensesExpanded(expanded => !expanded)}
+                        aria-label={monthlyExpensesExpanded ? 'Recolher despesas do mês' : 'Expandir despesas do mês'}
+                        aria-expanded={monthlyExpensesExpanded}
+                        aria-controls='monthly-expenses-timeline'
+                        sx={{ borderRadius: 2, textAlign: 'left' }}
+                      >
+                        <Stack direction='row' alignItems='center' spacing={1.2}>
+                          <Box sx={{ width: 40, height: 40, flexShrink: 0, borderRadius: 2.5, display: 'grid', placeItems: 'center', bgcolor: 'var(--primary-soft)', color: 'var(--primary-text)' }}>
+                            <TimelineRoundedIcon />
+                          </Box>
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography id='monthly-expenses-heading' component='h2' sx={{ fontSize: { xs: 18, sm: 20 }, fontWeight: 700, lineHeight: 1.3, letterSpacing: '-0.02em', color: 'var(--text)' }}>Despesas do mês</Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 0.8, mt: 0.4 }}>
+                              <Chip label={`${invoices.length} ${invoices.length === 1 ? 'despesa' : 'despesas'}`} size='small' sx={{ bgcolor: 'var(--subtle)', color: 'var(--muted)', fontSize: 11, fontWeight: 500 }} />
+                            </Box>
+                          </Box>
+                          <ExpandMoreRoundedIcon sx={{ color: 'var(--primary-text)', transform: monthlyExpensesExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .2s', flexShrink: 0 }} />
+                        </Stack>
+                      </CardActionArea>
+                      <Collapse in={monthlyExpensesExpanded} timeout='auto' unmountOnExit>
+                        <Box id='monthly-expenses-timeline' role='region' aria-labelledby='monthly-expenses-heading' sx={{ pt: 2.5 }}>
+                          <MonthlyExpensesTimeline expenses={invoices} onEdit={setEditingExpense} canEdit={online} />
+                        </Box>
+                      </Collapse>
                     </CardContent>
                   </Card>
 
@@ -580,17 +531,17 @@ export default function Home() {
                     variant='outlined'
                     sx={{
                       borderRadius: 4,
-                      borderColor: 'rgba(6, 42, 63, 0.10)',
-                      boxShadow: '0 18px 30px -26px rgba(6, 42, 63, 0.5)',
+                      borderColor: 'var(--border)',
+                      boxShadow: 'var(--shadow)',
                       animation: 'fadeInUp .7s ease both',
                       animationDelay: '420ms',
                     }}
                   >
                     <CardContent sx={{ p: { xs: 2, sm: 2.4 } }}>
-                      <Typography sx={{ fontSize: 18, fontWeight: 700, color: '#102435' }}>
+                      <Typography sx={{ fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>
                         Despesas por categoria
                       </Typography>
-                      <Typography sx={{ mt: 0.5, mb: 1.2, fontSize: 13, color: '#607d92' }}>
+                      <Typography sx={{ mt: 0.5, mb: 1.2, fontSize: 13, color: 'var(--muted)' }}>
                         Leia rapidamente onde está indo a maior parte dos gastos.
                       </Typography>
                       <Box
@@ -611,6 +562,7 @@ export default function Home() {
             </Box>
           )}
         </Container>
+        <AddInvoiceModal invoice={editingExpense} open={Boolean(editingExpense)} handleClose={() => setEditingExpense(undefined)} />
       </LayoutMobile>
     </>
   );

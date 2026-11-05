@@ -3,6 +3,7 @@ import { query, where } from "firebase/firestore";
 import { database } from "../../../firebaseConfig";
 import { deleteRevenueTypes, getRevenueTypes, getUserRevenuesTypes, IRevenue, updateRevenueTypes } from "./types";
 import dayjs from 'dayjs';
+import { createLaunchId, queueTransactions } from '../offline/launches';
 
 export const getUserRevenues: getUserRevenuesTypes = async (uid: string, dateToAnalyze: string) => {
 	const collectionRef = collection(database, 'revenues');
@@ -41,22 +42,21 @@ export const getRevenue: getRevenueTypes = async (revenueId: string) => {
 }
 
 export const updateRevenue: updateRevenueTypes = async (revenue: IRevenue) => {
-	let newRevenues: any = { ...revenue }
+	if (revenue.pendingSync) throw new Error('Aguarde a sincronização para editar.');
+	const { pendingSync, ...stored } = revenue;
+	let newRevenues: any = { ...stored }
 	newRevenues.addDate = newRevenues.addDate?.toString()
 	const docRef = doc(database, 'revenues', newRevenues.id);
 	await updateDoc(docRef, newRevenues);
 }
 
 export const deleteRevenue: deleteRevenueTypes = async (revenueId: string) => {
+	if (!navigator.onLine) throw new Error('Conecte-se para excluir.');
 	await deleteDoc(doc(database, "revenues", revenueId));
 }
 
 
-export async function putRevenue(revenue: IRevenue) {
-	let newRevenues: any = { ...revenue }
-	newRevenues.addDate = newRevenues.addDate?.toString()
-	const docRef = await addDoc(collection(database, 'revenues'), newRevenues);
-	return {
-		...revenue, id: docRef.id
-	};
+export async function putRevenue(revenue: IRevenue, id = createLaunchId('revenues')) {
+	const [saved] = await queueTransactions('revenues', [{ ...revenue, id }]);
+	return saved;
 }

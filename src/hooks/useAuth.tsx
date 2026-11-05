@@ -78,9 +78,11 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
 
     function checkOnAuthStateUser(user: User | null) {
         if (user) {
+            setUser(user)
             setUid(user.uid)
             setIsLogged(true)
         } else {
+            setUid("")
             setUser(undefined)
             setIsLogged(false)
         }

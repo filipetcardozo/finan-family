@@ -6,6 +6,7 @@ export type updateRevenueTypes = (Revenue: IRevenue) => Promise<void>;
 export type deleteRevenueTypes = (RevenueId: string) => Promise<void>;
 
 export type IRevenue = {
+    pendingSync?: boolean;
     recurringTemplateId?: string;
     addDate: Dayjs | null;
     addDateFormatted: string;

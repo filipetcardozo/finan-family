@@ -28,8 +28,8 @@ export function SortableCategoryGroup({ id, label, children }: SortableCategoryG
         WebkitTapHighlightColor: 'transparent',
         transition: 'background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease',
         '&:hover': {
-          backgroundColor: 'rgba(15, 106, 114, 0.06)',
-          boxShadow: 'inset 0 0 0 1px rgba(15, 106, 114, 0.12)',
+          backgroundColor: 'var(--primary-soft)',
+          boxShadow: 'var(--shadow)',
         },
       }}
     >
@@ -60,7 +60,7 @@ export function SortableCategoryGroup({ id, label, children }: SortableCategoryG
             fontSize: 14,
             fontWeight: 700,
             letterSpacing: '.02em',
-            color: '#4d6c82',
+            color: 'var(--muted)',
             lineHeight: 1.2,
           }}
         >

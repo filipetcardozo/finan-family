@@ -36,13 +36,15 @@ export function SortableCategoryChip({ id, label, onDelete }: SortableCategoryCh
         {...attributes}
         {...listeners}
         sx={{
+          backgroundColor: 'var(--primary-soft)', color: 'var(--primary-text)',
+          '& .MuiChip-deleteIcon': { color: 'inherit', opacity: 0.65, '&:hover': { color: 'inherit', opacity: 1 } },
           borderRadius: 2,
           cursor: 'grab',
           transition: 'background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease',
           touchAction: 'none',
           '&:hover': {
-            backgroundColor: '#168970',
-            boxShadow: '0 0 0 1px rgba(8, 43, 67, 0.08)',
+            backgroundColor: 'var(--secondary-soft)',
+            boxShadow: 'var(--shadow)',
           },
           '&:active': {
             cursor: 'grabbing',

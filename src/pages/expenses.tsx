@@ -1,43 +1,41 @@
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useMemo, useState } from 'react';
 import Head from 'next/head';
 import {
   Box,
-  Button,
   Card,
   CardContent,
   Chip,
-  Dialog,
-  DialogActions,
-  DialogTitle,
-  IconButton,
   Stack,
   TextField,
-  Tooltip,
   Typography,
 } from '@mui/material';
-import BorderColorIcon from '@mui/icons-material/BorderColorOutlined';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
 import PaidRoundedIcon from '@mui/icons-material/PaidRounded';
-import dayjs from 'dayjs';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useSnackbar } from 'notistack';
 import { AddInvoiceModal } from '../components/ModalAddInvoice';
+import { DeleteTransactionDialog } from '../components/DeleteTransactionDialog';
 import { RecurringTransactionsButton } from '../components/RecurringTransactions';
 import { LayoutMobile } from '../components/AppLayoutMobile';
 import { LoadingTransactionsPage } from '../components/SkeletonLoadingTransactionsPage';
 import { ExpensesContext } from '../contexts/expenses';
 import { MonthSelectedContext } from '../contexts/monthSelected';
-import { useProtectPage } from '../hooks/useAuth';
+import { useAuth, useProtectPage } from '../hooks/useAuth';
+import { deleteExpenseAndFuture, getFutureSeriesExpenses } from '../providers/invoices/deletion';
 import { IInvoice } from '../providers/invoices/types';
 import { formatterCurrency } from '../utils/formatters';
+import { filterTransactions } from '../utils/transactionSearch';
+import { ExpensesTable } from '../components/ExpensesTable';
+import { useOfflineSync } from '../contexts/offlineSync';
 
 export default function Expenses() {
   useProtectPage();
+  const { uid } = useAuth();
+  const loadFuture = useCallback((invoice: IInvoice) => getFutureSeriesExpenses(uid, invoice), [uid]);
 
   const { enqueueSnackbar } = useSnackbar();
   const { invoices, handleDeleteInvoice, monthlyExpenses, loadingGetInvoices } = useContext(ExpensesContext);
   const { dateToAnalyze } = useContext(MonthSelectedContext);
+  const { online } = useOfflineSync();
 
   const [searchText, setSearchText] = useState('');
   const [editInvoiceModal, setEditInvoiceModal] = useState<{
@@ -48,26 +46,9 @@ export default function Expenses() {
     invoice: undefined,
   });
 
-  const [openModalDeleteInvoice, setOpenModalDeleteInvoice] = useState({
-    open: false,
-    invoiceId: '',
-  });
+  const [deletingInvoice, setDeletingInvoice] = useState<IInvoice | null>(null);
 
-  const filteredInvoices = useMemo(() => {
-    const normalizedSearch = searchText.trim().toLowerCase();
-
-    if (!normalizedSearch) {
-      return invoices;
-    }
-
-    return invoices.filter(invoice => {
-      const category = invoice.invoiceCategory?.toLowerCase() ?? '';
-      const description = invoice.description?.toLowerCase() ?? '';
-      const addDate = invoice.addDate?.format('DD/MM/YYYY') ?? '';
-
-      return category.includes(normalizedSearch) || description.includes(normalizedSearch) || addDate.includes(normalizedSearch);
-    });
-  }, [invoices, searchText]);
+  const filteredInvoices = useMemo(() => filterTransactions(invoices, searchText), [invoices, searchText]);
 
   const monthLabel = useMemo(() => {
     return dateToAnalyze.format('MMMM [de] YYYY');
@@ -80,70 +61,18 @@ export default function Expenses() {
 
   const infoCardSx = {
     borderRadius: 4,
-    borderColor: 'rgba(6, 42, 63, 0.10)',
-    boxShadow: '0 18px 30px -26px rgba(6, 42, 63, 0.5)',
+    borderColor: 'var(--border)',
+    boxShadow: 'var(--shadow)',
   };
 
   const handleCloseModalDeleteInvoice = () => {
-    setOpenModalDeleteInvoice({ invoiceId: '', open: false });
+    setDeletingInvoice(null);
   };
-
-  const columns: GridColDef[] = [
-    {
-      field: 'invoiceCategory',
-      headerName: 'Categoria',
-      flex: 1,
-      minWidth: 170,
-    },
-    {
-      field: 'value',
-      headerName: 'Valor',
-      minWidth: 130,
-      renderCell: ({ value }: any) => (
-        <Typography sx={{ fontWeight: 700, color: '#0f4f63' }}>
-          {formatterCurrency(value)}
-        </Typography>
-      ),
-    },
-    {
-      field: 'addDate',
-      headerName: 'Data',
-      minWidth: 120,
-      renderCell: ({ value }: any) => dayjs(value).format('DD/MM/YYYY'),
-    },
-    {
-      field: 'description',
-      headerName: 'Descrição',
-      flex: 1,
-      minWidth: 180,
-    },
-    {
-      field: 'id',
-      headerName: 'Ações',
-      minWidth: 120,
-      sortable: false,
-      renderCell: ({ row }: any) => (
-        <>
-          <IconButton color='primary' onClick={() => setEditInvoiceModal({ invoice: row, open: true })}>
-            <Tooltip title='Editar despesa'>
-              <BorderColorIcon fontSize='small' />
-            </Tooltip>
-          </IconButton>
-          <IconButton color='error' onClick={() => setOpenModalDeleteInvoice({ open: true, invoiceId: row.id })}>
-            <Tooltip title='Excluir despesa'>
-              <DeleteOutlineIcon fontSize='small' />
-            </Tooltip>
-          </IconButton>
-        </>
-      ),
-    },
-  ];
 
   return (
     <>
       <Head>
         <title>Despesas</title>
-        <link rel='icon' href='/favicon.ico' />
       </Head>
       <LayoutMobile tabSelected='/expenses'>
         {loadingGetInvoices ? (
@@ -161,9 +90,9 @@ export default function Expenses() {
               <Card
                 sx={{
                   borderRadius: 4,
-                  border: '1px solid rgba(6, 42, 63, 0.08)',
-                  background: 'linear-gradient(136deg, #082b43 0%, #0f6a72 48%, #15917c 100%)',
-                  color: '#eefcff',
+                  border: '1px solid var(--border)',
+                  background: 'var(--hero)',
+                  color: 'var(--nav-text)',
                 }}
               >
                 <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
@@ -177,7 +106,7 @@ export default function Expenses() {
                     <Chip
                       label={monthLabel}
                       sx={{
-                        color: '#d5f8ff',
+                        color: 'var(--nav-muted)',
                         borderColor: 'rgba(213, 248, 255, .45)',
                         backgroundColor: 'rgba(213, 248, 255, .12)',
                         textTransform: 'capitalize',
@@ -205,12 +134,12 @@ export default function Expenses() {
                             fontSize: 13,
                             letterSpacing: '.04em',
                             textTransform: 'uppercase',
-                            color: '#567086',
+                            color: 'var(--muted)',
                           }}
                         >
                           Total no mês
                         </Typography>
-                        <Typography sx={{ mt: 0.5, fontSize: 23, fontWeight: 700, color: '#102435' }}>
+                        <Typography sx={{ mt: 0.5, fontSize: 23, fontWeight: 700, color: 'var(--text)' }}>
                           {formatterCurrency(monthlyExpenses)}
                         </Typography>
                       </Box>
@@ -222,8 +151,8 @@ export default function Expenses() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          color: '#176c6f',
-                          background: '#176c6f18',
+                          color: 'var(--primary-text)',
+                          background: 'var(--primary-soft)',
                         }}
                       >
                         <PaidRoundedIcon />
@@ -241,15 +170,15 @@ export default function Expenses() {
                             fontSize: 13,
                             letterSpacing: '.04em',
                             textTransform: 'uppercase',
-                            color: '#567086',
+                            color: 'var(--muted)',
                           }}
                         >
                           Lançamentos
                         </Typography>
-                        <Typography sx={{ mt: 0.5, fontSize: 23, fontWeight: 700, color: '#102435' }}>
+                        <Typography sx={{ mt: 0.5, fontSize: 23, fontWeight: 700, color: 'var(--text)' }}>
                           {filteredInvoices.length}
                         </Typography>
-                        <Typography sx={{ mt: 0.6, fontSize: 13, color: '#607d92' }}>
+                        <Typography sx={{ mt: 0.6, fontSize: 13, color: 'var(--muted)' }}>
                           {categoryCount} categorias
                         </Typography>
                       </Box>
@@ -261,8 +190,8 @@ export default function Expenses() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          color: '#3f5e91',
-                          background: '#3f5e9118',
+                          color: 'var(--secondary-text)',
+                          background: 'var(--secondary-soft)',
                         }}
                       >
                         <InsightsRoundedIcon />
@@ -278,36 +207,19 @@ export default function Expenses() {
                     <RecurringTransactionsButton kind='expense' />
                     <TextField
                       size='small'
-                      label='Buscar por categoria, descrição ou data'
+                      label='Buscar por qualquer informação'
+                      placeholder='Valor, categoria, descrição, data...'
                       value={searchText}
                       onChange={event => setSearchText(event.target.value)}
                       fullWidth
                     />
 
-                    <Box sx={{ width: '100%' }}>
-                      <DataGrid
-                        autoHeight
-                        rows={filteredInvoices}
-                        columns={columns}
-                        initialState={{ sorting: { sortModel: [{ field: 'value', sort: 'desc' }] } }}
-                        pageSize={12}
-                        rowsPerPageOptions={[12, 25, 50]}
-                        disableSelectionOnClick
-                        localeText={{ noRowsLabel: 'Nenhuma despesa encontrada.' }}
-                        sx={{
-                          border: '1px solid rgba(16, 50, 72, 0.12)',
-                          borderRadius: 3,
-                          '& .MuiDataGrid-columnHeaders': {
-                            backgroundColor: '#eef8fc',
-                            color: '#123047',
-                            borderBottom: '1px solid rgba(16, 50, 72, 0.12)',
-                          },
-                          '& .MuiDataGrid-row:nth-of-type(even)': {
-                            backgroundColor: '#f8fcff',
-                          },
-                        }}
-                      />
-                    </Box>
+                    <ExpensesTable
+                      invoices={filteredInvoices}
+                      canManage={online}
+                      onEdit={invoice => setEditInvoiceModal({ invoice, open: true })}
+                      onDelete={id => setDeletingInvoice(invoices.find(entry => entry.id === id) ?? null)}
+                    />
                   </Stack>
                 </CardContent>
               </Card>
@@ -321,32 +233,18 @@ export default function Expenses() {
           handleClose={() => setEditInvoiceModal({ ...editInvoiceModal, open: false })}
         />
 
-        <Dialog
-          open={openModalDeleteInvoice.open}
-          onClose={handleCloseModalDeleteInvoice}
-          aria-labelledby='alert-dialog-title'
-          aria-describedby='alert-dialog-description'
-        >
-          <DialogTitle id='alert-dialog-title'>
-            Tem certeza que deseja deletar esta despesa?
-          </DialogTitle>
-          <DialogActions>
-            <Button onClick={handleCloseModalDeleteInvoice}>Cancelar</Button>
-            <Button
-              onClick={async () => {
-                await handleDeleteInvoice(openModalDeleteInvoice.invoiceId);
-                handleCloseModalDeleteInvoice();
-                enqueueSnackbar('Despesa removida', {
-                  autoHideDuration: 2000,
-                  variant: 'success',
-                  anchorOrigin: { horizontal: 'center', vertical: 'top' },
-                });
-              }}
-            >
-              Deletar
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <DeleteTransactionDialog
+          transaction={deletingInvoice} kind='expense' onClose={handleCloseModalDeleteInvoice}
+          onLoadFuture={loadFuture}
+          onConfirm={async (id, options) => {
+            let count = 1;
+            if (options?.includeFuture && deletingInvoice) count = (await deleteExpenseAndFuture(uid, deletingInvoice, options.futureIds ?? [])).length;
+            else await handleDeleteInvoice(id);
+            enqueueSnackbar(count > 1 ? `${count} lançamentos removidos` : 'Despesa removida', {
+              autoHideDuration: 2000, variant: 'success', anchorOrigin: { horizontal: 'center', vertical: 'top' },
+            });
+          }}
+        />
       </LayoutMobile>
     </>
   );

@@ -7,6 +7,11 @@ export type updateInvoiceTypes = (invoice: IInvoice) => Promise<void>;
 export type deleteInvoiceTypes = (invoiceId: string) => Promise<void>;
 
 export type IInvoice = {
+    pendingSync?: boolean;
+    installmentPurchaseId?: string;
+    installmentNumber?: number;
+    installmentCount?: number;
+    isMonthlyFixed?: boolean;
     recurringTemplateId?: string;
     addDate: Dayjs | null;
     addDateFormatted: string;

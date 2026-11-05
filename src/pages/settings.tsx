@@ -141,12 +141,12 @@ const OptimizationOrderColumn = ({
       minWidth: 0,
       p: 1.5,
       borderRadius: 3,
-      border: '1px solid rgba(15, 106, 114, 0.10)',
+      border: '1px solid var(--border)',
       backgroundColor:
-        accent === 'highlight' ? 'rgba(15, 106, 114, 0.06)' : 'rgba(8, 43, 67, 0.02)',
+        accent === 'highlight' ? 'var(--primary-soft)' : 'var(--subtle)',
     }}
   >
-    <Typography sx={{ fontWeight: 700, fontSize: 13, color: '#123047', mb: 1.2 }}>{title}</Typography>
+    <Typography sx={{ fontWeight: 700, fontSize: 13, color: 'var(--text)', mb: 1.2 }}>{title}</Typography>
 
     {items.length > 0 ? (
       <Stack spacing={0.8} sx={{ maxHeight: 260, overflowY: 'auto', pr: 0.3 }}>
@@ -163,9 +163,9 @@ const OptimizationOrderColumn = ({
                 p: 1,
                 borderRadius: 2,
                 border: isMoved
-                  ? '1px solid rgba(15, 106, 114, 0.18)'
-                  : '1px solid rgba(8, 43, 67, 0.06)',
-                backgroundColor: isMoved ? 'rgba(21, 145, 124, 0.08)' : '#fff',
+                  ? '1px solid var(--border)'
+                  : '1px solid var(--border)',
+                backgroundColor: isMoved ? 'var(--primary-soft)' : 'var(--surface)',
               }}
             >
               <Box
@@ -179,19 +179,19 @@ const OptimizationOrderColumn = ({
                   justifyContent: 'center',
                   fontSize: 11,
                   fontWeight: 700,
-                  color: isMoved ? '#fff' : '#4d6c82',
-                  backgroundColor: isMoved ? '#15917c' : 'rgba(8, 43, 67, 0.08)',
+                  color: isMoved ? 'var(--action-text)' : 'var(--muted)',
+                  backgroundColor: isMoved ? 'var(--action)' : 'var(--border)',
                 }}
               >
                 {index + 1}
               </Box>
 
               <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontSize: 13.5, fontWeight: 600, color: '#123047', lineHeight: 1.2 }}>
+                <Typography sx={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text)', lineHeight: 1.2 }}>
                   {item.label}
                 </Typography>
                 {item.helperText ? (
-                  <Typography sx={{ mt: 0.25, fontSize: 12, color: '#607d92', lineHeight: 1.2 }}>
+                  <Typography sx={{ mt: 0.25, fontSize: 12, color: 'var(--muted)', lineHeight: 1.2 }}>
                     {item.helperText}
                   </Typography>
                 ) : null}
@@ -201,7 +201,7 @@ const OptimizationOrderColumn = ({
         })}
       </Stack>
     ) : (
-      <Typography sx={{ fontSize: 13, color: '#607d92' }}>{emptyText}</Typography>
+      <Typography sx={{ fontSize: 13, color: 'var(--muted)' }}>{emptyText}</Typography>
     )}
   </Box>
 );
@@ -763,7 +763,6 @@ export default function Settings() {
     <>
       <Head>
         <title>Configurações</title>
-        <link rel='icon' href='/favicon.ico' />
       </Head>
 
       <LayoutMobile tabSelected='/settings'>
@@ -779,9 +778,9 @@ export default function Settings() {
             <Card
               sx={{
                 borderRadius: 4,
-                border: '1px solid rgba(6, 42, 63, 0.08)',
-                background: 'linear-gradient(136deg, #082b43 0%, #0f6a72 48%, #15917c 100%)',
-                color: '#eefcff',
+                border: '1px solid var(--border)',
+                background: 'var(--hero)',
+                color: 'var(--nav-text)',
               }}
             >
               <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
@@ -799,7 +798,7 @@ export default function Settings() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#eefcff',
+                      color: 'var(--nav-text)',
                       backgroundColor: 'rgba(238, 252, 255, 0.12)',
                       alignSelf: 'flex-start',
                     }}
@@ -814,8 +813,8 @@ export default function Settings() {
               variant='outlined'
               sx={{
                 borderRadius: 4,
-                borderColor: 'rgba(6, 42, 63, 0.10)',
-                boxShadow: '0 18px 30px -26px rgba(6, 42, 63, 0.5)',
+                borderColor: 'var(--border)',
+                boxShadow: 'var(--shadow)',
               }}
             >
               <CardContent sx={{ p: { xs: 1.4, sm: 1.8 } }}>
@@ -828,7 +827,7 @@ export default function Settings() {
                     '& .MuiTabs-indicator': {
                       height: 3,
                       borderRadius: 3,
-                      background: 'linear-gradient(90deg, #0f6a72 0%, #15917c 100%)',
+                      background: 'linear-gradient(90deg, var(--primary), var(--secondary))',
                     },
                   }}
                 >
@@ -859,8 +858,8 @@ export default function Settings() {
                                   borderRadius: 999,
                                   minWidth: 0,
                                   whiteSpace: 'nowrap',
-                                  borderColor: 'rgba(15, 106, 114, 0.18)',
-                                  color: '#0f6a72',
+                                  borderColor: 'var(--border)',
+                                  color: 'var(--primary)',
                                 }}
                               >
                                 Otimizar ordenações
@@ -893,8 +892,8 @@ export default function Settings() {
                                   borderRadius: 999,
                                   minWidth: 0,
                                   whiteSpace: 'nowrap',
-                                  borderColor: 'rgba(15, 106, 114, 0.18)',
-                                  color: '#0f6a72',
+                                  borderColor: 'var(--border)',
+                                  color: 'var(--primary)',
                                 }}
                               >
                                 Otimizar ordenações
@@ -917,7 +916,7 @@ export default function Settings() {
         </Box>
 
         <Dialog open={openCreateDialog} onClose={handleCloseCreateDialog} fullWidth maxWidth='xs'>
-          <DialogTitle sx={{ fontWeight: 700, color: '#123047' }}>
+          <DialogTitle sx={{ fontWeight: 700, color: 'var(--text)' }}>
             {tabSelected === 0 ? 'Nova categoria de despesa' : 'Nova categoria de receita'}
           </DialogTitle>
           <DialogContent>
@@ -980,7 +979,8 @@ export default function Settings() {
               sx={{
                 borderRadius: 999,
                 px: 2,
-                background: 'linear-gradient(136deg, #082b43 0%, #0f6a72 48%, #15917c 100%)',
+                background: 'var(--action)',
+                color: 'var(--action-text)',
               }}
             >
               Salvar
@@ -994,7 +994,7 @@ export default function Settings() {
           fullWidth
           maxWidth='sm'
         >
-          <DialogTitle sx={{ fontWeight: 700, color: '#123047' }}>
+          <DialogTitle sx={{ fontWeight: 700, color: 'var(--text)' }}>
             {optimizationTarget === 'expense'
               ? 'Otimizar ordenações de despesas'
               : 'Otimizar ordenações de receitas'}
@@ -1003,7 +1003,7 @@ export default function Settings() {
             {optimizationLoading ? (
               <Stack alignItems='center' justifyContent='center' spacing={1.5} sx={{ py: 4 }}>
                 <CircularProgress size={28} />
-                <Typography sx={{ color: '#527287' }}>
+                <Typography sx={{ color: 'var(--muted)' }}>
                   Analisando os últimos 6 meses desta aba...
                 </Typography>
               </Stack>
@@ -1013,14 +1013,14 @@ export default function Settings() {
                   sx={{
                     p: 1.5,
                     borderRadius: 3,
-                    backgroundColor: 'rgba(15, 106, 114, 0.06)',
-                    border: '1px solid rgba(15, 106, 114, 0.10)',
+                    backgroundColor: 'var(--primary-soft)',
+                    border: '1px solid var(--border)',
                   }}
                 >
-                  <Typography sx={{ fontWeight: 700, color: '#123047', mb: 0.5 }}>
+                  <Typography sx={{ fontWeight: 700, color: 'var(--text)', mb: 0.5 }}>
                     Resumo da análise
                   </Typography>
-                  <Typography sx={{ fontSize: 14, color: '#527287' }}>
+                  <Typography sx={{ fontSize: 14, color: 'var(--muted)' }}>
                     Foram avaliados {optimizationPreview.totalEntries} lançamentos dos últimos 6 meses para sugerir
                     uma ordem mais coerente com o uso real.
                   </Typography>
@@ -1030,13 +1030,13 @@ export default function Settings() {
                   sx={{
                     p: 1.25,
                     borderRadius: 3,
-                    border: '1px solid rgba(8, 43, 67, 0.08)',
-                    backgroundColor: 'rgba(8, 43, 67, 0.02)',
+                    border: '1px solid var(--border)',
+                    backgroundColor: 'var(--subtle)',
                   }}
                 >
                   <Stack spacing={0.25} sx={{ mb: 0.75 }}>
-                    <Typography sx={{ fontWeight: 700, color: '#123047' }}>O que você quer aplicar?</Typography>
-                    <Typography sx={{ fontSize: 13, color: '#607d92' }}>
+                    <Typography sx={{ fontWeight: 700, color: 'var(--text)' }}>O que você quer aplicar?</Typography>
+                    <Typography sx={{ fontSize: 13, color: 'var(--muted)' }}>
                       A prévia abaixo muda em tempo real conforme você marca as opções.
                     </Typography>
                   </Stack>
@@ -1071,7 +1071,7 @@ export default function Settings() {
                 {optimizationComparison ? (
                   <>
                     <Stack spacing={1}>
-                      <Typography sx={{ fontWeight: 700, color: '#123047' }}>Agrupamentos</Typography>
+                      <Typography sx={{ fontWeight: 700, color: 'var(--text)' }}>Agrupamentos</Typography>
                       <Box
                         sx={{
                           display: 'grid',
@@ -1097,8 +1097,8 @@ export default function Settings() {
 
                     <Stack spacing={1}>
                       <Box>
-                        <Typography sx={{ fontWeight: 700, color: '#123047' }}>Categorias personalizadas</Typography>
-                        <Typography sx={{ fontSize: 13, color: '#607d92' }}>
+                        <Typography sx={{ fontWeight: 700, color: 'var(--text)' }}>Categorias personalizadas</Typography>
+                        <Typography sx={{ fontSize: 13, color: 'var(--muted)' }}>
                           Essa comparação considera apenas as categorias criadas por você.
                         </Typography>
                       </Box>
@@ -1128,7 +1128,7 @@ export default function Settings() {
                 ) : null}
 
                 <Stack spacing={1}>
-                  <Typography sx={{ fontWeight: 700, color: '#123047' }}>Mais usadas</Typography>
+                  <Typography sx={{ fontWeight: 700, color: 'var(--text)' }}>Mais usadas</Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                     {optimizationPreview.topGroups.slice(0, 3).map(group => (
                       <Chip key={group.label} label={`${group.label} (${group.count})`} size='small' />
@@ -1146,7 +1146,7 @@ export default function Settings() {
 
                 {optimizationPreview.unusedCustomLabels.length > 0 ? (
                   <Stack spacing={1}>
-                    <Typography sx={{ fontWeight: 700, color: '#123047' }}>Sem uso nos últimos 6 meses</Typography>
+                    <Typography sx={{ fontWeight: 700, color: 'var(--text)' }}>Sem uso nos últimos 6 meses</Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                       {optimizationPreview.unusedCustomLabels.slice(0, 8).map(label => (
                         <Chip key={label} label={label} size='small' color='warning' variant='outlined' />
@@ -1170,7 +1170,8 @@ export default function Settings() {
               sx={{
                 borderRadius: 999,
                 px: 2,
-                background: 'linear-gradient(136deg, #082b43 0%, #0f6a72 48%, #15917c 100%)',
+                background: 'var(--action)',
+                color: 'var(--action-text)',
               }}
             >
               Aplicar

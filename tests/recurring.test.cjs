@@ -294,6 +294,37 @@ test('reviewing an older month does not overwrite newer saved defaults', () => {
   assert.equal(buildRecurringCandidates('expense', month, [later], [template()], [])[0].template.value, 450);
 });
 
+test('monthly fixed status follows explicit markings for named and unnamed expenses', () => {
+  for (const description of ['Condomínio', '']) {
+    const marked = buildRecurringCandidates('expense', month, [expense('2026-09-15', 'Contas', description, 500, { isMonthlyFixed: true })], [], []);
+    assert.equal(marked[0].template.isMonthlyFixed, true);
+    const ordinary = buildRecurringCandidates('expense', month, [expense('2026-09-15', 'Contas', description, 500)], [], []);
+    assert.equal(ordinary[0].template.isMonthlyFixed, false);
+  }
+  const saved = { ...template(), isMonthlyFixed: true };
+  const unmarked = buildRecurringCandidates('expense', month, [expense('2026-09-15', 'Contas', 'Luz', 500, { isMonthlyFixed: false })], [saved], []);
+  assert.equal(unmarked[0].template.isMonthlyFixed, false);
+  const newer = { ...saved, lastUsedMonth: '2026-12' };
+  assert.equal(updatedRecurringTemplates([newer], [selection({ ...saved, isMonthlyFixed: false })], month)[0].isMonthlyFixed, true);
+});
+
+test('repeating preserves fixed status, including retries and later manual unmarking', async () => {
+  const { store, services } = firestoreDouble();
+  const fixed = { ...template(), isMonthlyFixed: true };
+  const result = await services.launchRecurringTransactions('family', 'expense', month, [selection(fixed)]);
+  const entry = result.transactions[0];
+  assert.equal(entry.isMonthlyFixed, true);
+  assert.equal(store.get(`invoices/${entry.id}`).isMonthlyFixed, true);
+  assert.equal(store.get('userSettings/family').recurringExpenseTemplates[0].isMonthlyFixed, true);
+  const loaded = await services.loadRecurringData('family', 'expense', dayjs('2026-11-01'));
+  assert.equal(loaded.templates[0].isMonthlyFixed, true);
+  store.set(`invoices/${entry.id}`, { ...store.get(`invoices/${entry.id}`), isMonthlyFixed: false });
+  const retry = await services.launchRecurringTransactions('family', 'expense', month, [selection(fixed)]);
+  assert.equal(retry.createdCount, 0);
+  assert.equal(retry.transactions[0].isMonthlyFixed, false);
+  assert.equal(store.get('userSettings/family').recurringExpenseTemplates[0].isMonthlyFixed, false);
+});
+
 // A transactional in-memory Firestore double: no test reads/writes the real account.
 function firestoreDouble() {
   const store = new Map();

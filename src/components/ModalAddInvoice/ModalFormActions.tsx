@@ -8,6 +8,7 @@ interface ModalFormActionsProps {
   handleClose(): void;
   loading: boolean;
   submitLabel: string;
+  submitIcon: React.ReactNode;
   secondaryActionSx: SxProps<Theme>;
   primaryActionSx: SxProps<Theme>;
   disabled?: boolean;
@@ -17,16 +18,17 @@ export function ModalFormActions({
   handleClose,
   loading,
   submitLabel,
+  submitIcon,
   secondaryActionSx,
   primaryActionSx,
   disabled,
 }: ModalFormActionsProps) {
   return (
-    <DialogActions sx={{ px: 3, pb: 2.2, pt: 1.2 }}>
-      <Button size="small" variant="outlined" onClick={handleClose} disabled={loading} sx={secondaryActionSx}>
-        Voltar
+    <DialogActions disableSpacing sx={{ px: { xs: 2, sm: 3 }, pb: 2.2, pt: 1.2, gap: 1, flexWrap: 'wrap' }}>
+      <Button size="small" variant="text" onClick={handleClose} disabled={loading} sx={secondaryActionSx}>
+        Fechar
       </Button>
-      <LoadingButton type="submit" variant="contained" size="small" loading={loading} disabled={disabled} sx={primaryActionSx}>
+      <LoadingButton type="submit" variant="contained" size="small" startIcon={submitIcon} loading={loading} disabled={disabled} sx={primaryActionSx}>
         {submitLabel}
       </LoadingButton>
     </DialogActions>

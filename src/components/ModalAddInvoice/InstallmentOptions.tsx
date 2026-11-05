@@ -10,18 +10,22 @@ interface InstallmentOptionsProps {
   disabled: boolean;
   onCheckedChange(checked: boolean): void;
   onCountChange(count: string): void;
+  children?: React.ReactNode;
 }
 
-export function InstallmentOptions({ checked, count, value, disabled, onCheckedChange, onCountChange }: InstallmentOptionsProps) {
+export function InstallmentOptions({ checked, count, value, disabled, onCheckedChange, onCountChange, children }: InstallmentOptionsProps) {
   const quantity = Number(count);
   const valid = isValidInstallmentCount(quantity);
   return (
     <Box sx={{ mt: 1 }}>
-      <FormControlLabel sx={{ m: 0, ml: -1.25 }}
-        control={<Checkbox checked={checked} disabled={disabled} size='small'
-          onChange={event => onCheckedChange(event.target.checked)} sx={{ p: 1.25, minHeight: 44, minWidth: 44 }} />}
-        label={<Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Compra parcelada</Typography>}
-      />
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', columnGap: 2 }}>
+        <FormControlLabel sx={{ m: 0, ml: -1.25 }}
+          control={<Checkbox checked={checked} disabled={disabled} size='small'
+            onChange={event => onCheckedChange(event.target.checked)} sx={{ p: 1.25, minHeight: 44, minWidth: 44 }} />}
+          label={<Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Compra parcelada</Typography>}
+        />
+        {children}
+      </Box>
       {checked && <TextField
         label='Quantidade de parcelas' size='small' type='number' fullWidth autoComplete='off'
         value={count} disabled={disabled} error={!valid}

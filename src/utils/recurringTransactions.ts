@@ -1,4 +1,5 @@
 import dayjs, { Dayjs } from 'dayjs';
+import { isInstallmentInvoice } from './installments';
 import type {
   FinancialTransaction, RecurringCandidate, RecurringSelection, RecurringTemplate, TransactionKind,
 } from '../providers/recurring/types';
@@ -12,6 +13,9 @@ export const normalizeRecurringText = (value: string) => value
 
 export const transactionCategory = (entry: FinancialTransaction) =>
   'invoiceCategory' in entry ? entry.invoiceCategory : entry.revenueCategory;
+
+const monthlyFixedFlag = (kind: TransactionKind, entry: FinancialTransaction) =>
+  kind === 'expense' ? { isMonthlyFixed: 'isMonthlyFixed' in entry && entry.isMonthlyFixed === true } : {};
 
 export const recurringIdentity = (kind: TransactionKind, category: string, description: string, valueAnchor?: number) =>
   JSON.stringify([
@@ -63,7 +67,8 @@ export const buildRecurringCandidates = (
   history.forEach(entry => {
     if (!entry.addDate?.isValid() || !allowedMonths.has(entry.addDate.format('MM/YYYY'))
       || !Number.isFinite(entry.value) || (entry.value ?? 0) <= 0
-      || !transactionCategory(entry)?.trim() || isInstallment(entry.description || '')) return;
+      || !transactionCategory(entry)?.trim() || isInstallment(entry.description || '')
+      || (kind === 'expense' && isInstallmentInvoice(entry))) return;
     const key = recurringIdentity(kind, transactionCategory(entry), entry.description || '');
     groups.set(key, [...(groups.get(key) || []), entry]);
   });
@@ -109,6 +114,7 @@ export const buildRecurringCandidates = (
           id: useBaseIdentity ? id : recurringIdentity(kind, category, '', reference),
           kind, category, description: '', value: latest.value!, day: latest.addDate!.date(),
           startsOn: month.format('YYYY-MM'), lastUsedMonth: '', active: true, matchValue: true,
+          ...monthlyFixedFlag(kind, latest),
           ...(useBaseIdentity ? {} : { valueAnchor: reference }),
         }, false, occurrences, occurrences >= 2
           && (!restaurantWithOtherPurchases || reference > REPEATED_EXPENSE_MINIMUM));
@@ -138,6 +144,7 @@ export const buildRecurringCandidates = (
       id, kind, category: transactionCategory(latest), description,
       value: latest.value!, day: latest.addDate!.date(),
       startsOn: month.format('YYYY-MM'), lastUsedMonth: '', active: true,
+      ...monthlyFixedFlag(kind, latest),
       ...(repeatedValue || isLargeRestaurantExpense(kind, transactionCategory(latest), latest.value!) ? { matchValue: true } : {}),
     }, false, occurrences, standardSuggestion || Boolean(repeatedValue));
   });
@@ -166,7 +173,7 @@ export const buildRecurringCandidates = (
     const latestDay = latest && latest.addDate!.format('YYYY-MM-DD') === dateForRecurringDay(latest.addDate!, template.day)
       ? template.day : latest?.addDate!.date();
     addCandidate(useLatest ? {
-      ...monthlyTemplate, value: latest.value!, day: latestDay!,
+      ...monthlyTemplate, value: latest.value!, day: latestDay!, ...monthlyFixedFlag(kind, latest),
     } : monthlyTemplate, true, occurrences, true);
   });
 
@@ -193,6 +200,8 @@ export const updatedRecurringTemplates = (
     const previous = merged.get(template.id);
     merged.set(template.id, {
       ...template,
+      ...(template.kind === 'expense' && previous && previous.lastUsedMonth > monthKey
+        ? { isMonthlyFixed: previous.isMonthlyFixed === true } : {}),
       value: previous && previous.lastUsedMonth > monthKey ? previous.value : value,
       day: previous && previous.lastUsedMonth > monthKey ? previous.day
         : date === dateForRecurringDay(month, template.day) ? template.day : dayjs(date).date(),

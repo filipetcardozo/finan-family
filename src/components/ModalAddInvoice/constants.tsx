@@ -13,17 +13,25 @@ export const getDefaultAddDateBySelectedMonth = (dateToAnalyze: Dayjs): Dayjs =>
 };
 
 export const secondaryActionSx: SxProps<Theme> = {
-  color: '#2a4f64',
-  borderColor: 'rgba(8, 43, 67, 0.22)',
+  color: 'var(--muted)',
+  minHeight: 40,
+  borderRadius: 2,
+  textTransform: 'none',
+  fontWeight: 600,
   '&:hover': {
-    borderColor: 'rgba(8, 43, 67, 0.42)',
-    backgroundColor: 'rgba(8, 43, 67, 0.05)',
+    backgroundColor: 'var(--subtle)',
   },
 };
 
 export const primaryActionSx: SxProps<Theme> = {
-  background: 'linear-gradient(136deg, #082b43 0%, #0f6a72 48%, #15917c 100%)',
+  minHeight: 40,
+  px: 2,
+  borderRadius: 2,
+  textTransform: 'none',
+  fontWeight: 700,
+  background: 'var(--action)',
+  color: 'var(--action-text)',
   '&:hover': {
-    background: 'linear-gradient(136deg, #0a3451 0%, #12747c 48%, #1aa188 100%)',
+    background: 'var(--action-hover)',
   },
 };
