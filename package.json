@@ -15,6 +15,7 @@
     "test:search": "node --test tests/transactionSearch.test.cjs",
     "test:monthly-fixed": "node --test tests/monthlyFixed.test.cjs",
     "test:monthly-analysis": "node --test tests/monthlyExpenseAnalysis.test.cjs",
+    "test:monthly-balance": "node --test tests/monthlyBalance.test.cjs",
     "test:offline": "node --test tests/offline.test.cjs",
     "test:theme": "node --test tests/theme.test.cjs",
     "test:transactions": "node --test tests/transactions.test.cjs",

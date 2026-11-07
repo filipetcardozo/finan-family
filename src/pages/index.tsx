@@ -36,6 +36,7 @@ import { MonthSelectedContext } from '../contexts/monthSelected';
 import { AddInvoiceModal } from '../components/ModalAddInvoice';
 import type { IInvoice } from '../providers/invoices/types';
 import { useOfflineSync } from '../contexts/offlineSync';
+import { getMonthlyBalance } from '../utils/monthlyBalance';
 
 type StatCardProps = {
   title: string;
@@ -104,48 +105,18 @@ export default function Home() {
   const [showFinancialHelp, setShowFinancialHelp] = useState(false);
   const [monthlyExpensesExpanded, setMonthlyExpensesExpanded] = useState(true);
 
-  const isInvestmentCategory = (category?: string) => {
-    if (!category) {
-      return false;
-    }
-
-    const normalized = category
-      .trim()
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '');
-
-    return normalized.startsWith('invest');
-  };
-
-  const monthlyInvestments = useMemo(() => {
-    let realInvestments = 0;
-    let plannedInvestments = 0;
-
-    invoices.forEach(invoice => {
-      if (isInvestmentCategory(invoice.invoiceCategory)) {
-        realInvestments += invoice.value ?? 0;
-        plannedInvestments += invoice.value ?? 0;
-      }
-    });
-
-    const currentBalance = monthlyRevenues - realInvestments - monthlyExpenses;
-
-    if (plannedInvestments > 0 && currentBalance < 0) {
-      realInvestments += currentBalance;
-    }
-
-    if (realInvestments < 0) {
-      realInvestments = 0;
-    }
-
-    return { realInvestments, plannedInvestments };
-  }, [invoices, monthlyExpenses, monthlyRevenues]);
-
-  const asWeAre = useMemo(() => {
-    // monthlyExpenses ja considera investimentos cadastrados como despesa.
-    return monthlyRevenues - monthlyExpenses;
-  }, [monthlyExpenses, monthlyRevenues]);
+  const monthlyBalance = useMemo(
+    () => getMonthlyBalance(monthlyRevenues, monthlyExpenses, invoices),
+    [invoices, monthlyExpenses, monthlyRevenues],
+  );
+  const asWeAre = monthlyBalance.availableToSpend;
+  const investmentPlanLabel = monthlyBalance.plannedInvestments > 0
+    ? asWeAre >= 0
+      ? 'Investimento planejado reservado'
+      : monthlyBalance.preservedInvestments > 0
+        ? 'Consumindo o investimento planejado'
+        : 'Investimento planejado consumido'
+    : undefined;
 
   const budgetUsage = useMemo(() => {
     if (monthlyRevenues <= 0) {
@@ -183,9 +154,9 @@ export default function Home() {
     if (monthlyRevenues <= 0) {
       return {
         simple: {
-          positiveAmount: 0,
+          positiveAmount: asWeAre,
           positiveRate: 0,
-          label: 'Sem receita no mês',
+          label: investmentPlanLabel ?? 'Sem receita no mês',
           emoji: '😶',
           color: 'var(--hero-error)',
         },
@@ -203,7 +174,7 @@ export default function Home() {
     const positiveAmount = asWeAre;
     const positiveRate = (positiveAmount / monthlyRevenues) * 100;
     const spentRate = (monthlyExpenses / monthlyRevenues) * 100;
-    const investmentRate = (monthlyInvestments.realInvestments / monthlyRevenues) * 100;
+    const investmentRate = (monthlyBalance.preservedInvestments / monthlyRevenues) * 100;
     const nonInvestmentRate = Math.max(0, spentRate - investmentRate);
     const expectedSpentRate = monthProgress;
 
@@ -235,13 +206,13 @@ export default function Home() {
 
     const paceDiff = spentRate - expectedSpentRate;
     const paceLabel = paceDiff <= 5 ? 'ritmo de gastos controlado' : 'ritmo de gastos acima do esperado';
-    const complexLabel = `Você já gastou ${spentRate.toFixed(0)}% da receita no mês. Desse total, ${investmentRate.toFixed(0)}% foi investimento. Hoje, ${paceLabel}.`;
+    const complexLabel = `Você já gastou ${spentRate.toFixed(0)}% da receita no mês e tem ${investmentRate.toFixed(0)}% preservados para investir. Hoje, ${paceLabel}.`;
 
     return {
       simple: {
         positiveAmount,
         positiveRate,
-        label: simpleLabel,
+        label: investmentPlanLabel ?? simpleLabel,
         emoji: simpleEmoji,
         color: simpleColor,
       },
@@ -254,19 +225,7 @@ export default function Home() {
         label: complexLabel,
       },
     };
-  }, [asWeAre, monthProgress, monthlyExpenses, monthlyInvestments.realInvestments, monthlyRevenues]);
-
-  const practicalExample = useMemo(() => {
-    const baseRevenue = monthlyRevenues > 0 ? monthlyRevenues : 10000;
-
-    return {
-      baseRevenue,
-      expensesIdeal: baseRevenue * 0.8,
-      investmentsIdeal: baseRevenue * 0.2,
-      freeAmountIdeal: baseRevenue * 0.2,
-      usesUserRevenue: monthlyRevenues > 0,
-    };
-  }, [monthlyRevenues]);
+  }, [asWeAre, investmentPlanLabel, monthProgress, monthlyExpenses, monthlyBalance.preservedInvestments, monthlyRevenues]);
 
   const valueOrMask = (value: number, prefix = '') => {
     if (!showValues) {
@@ -348,7 +307,7 @@ export default function Home() {
                           <>
                             <Stack direction='row' spacing={0.6} alignItems='center' sx={{ mt: 0.25 }}>
                               <Typography sx={{ fontSize: 11.5, opacity: 0.8 }}>
-                                {financialAnalysis.simple.positiveRate.toFixed(0)}% da receita livre · {financialAnalysis.simple.label}
+                                {monthlyRevenues > 0 && `${Math.abs(financialAnalysis.simple.positiveRate).toFixed(0)}% da receita ${asWeAre < 0 ? 'além do disponível' : 'disponível para gastar'} · `}{financialAnalysis.simple.label}
                               </Typography>
                               <IconButton
                                 size='small'
@@ -372,16 +331,15 @@ export default function Home() {
                                   Como ler este resumo?
                                 </Typography>
                                 <Typography sx={{ mt: 0.45, fontSize: 12, opacity: 0.9 }}>
-                                  Considera o saldo do mês em relação à receita.
+                                  {monthlyBalance.plannedInvestments > 0
+                                    ? 'Disponível para gastar = receitas − despesas − investimento planejado.'
+                                    : 'Disponível para gastar = receitas − despesas.'}
                                 </Typography>
                                 <Typography sx={{ mt: 0.35, fontSize: 12, opacity: 0.9 }}>
                                   Agora: {formatterCurrency(financialAnalysis.simple.positiveAmount)} ({financialAnalysis.simple.positiveRate.toFixed(0)}% da receita).
                                 </Typography>
                                 <Typography sx={{ mt: 0.35, fontSize: 12, opacity: 0.9 }}>
                                   Análise complexa: {financialAnalysis.complex.label}
-                                </Typography>
-                                <Typography sx={{ mt: 0.35, fontSize: 12, opacity: 0.9 }}>
-                                  {practicalExample.usesUserRevenue ? 'Exemplo com sua receita do mês' : 'Exemplo com receita de R$ 10.000'} ({formatterCurrency(practicalExample.baseRevenue)}): investir {formatterCurrency(practicalExample.investmentsIdeal)} (20%), gastos totais até {formatterCurrency(practicalExample.expensesIdeal)} (80%) e saldo positivo de pelo menos {formatterCurrency(practicalExample.freeAmountIdeal)} (20%).
                                 </Typography>
                               </Box>
                             </Collapse>
@@ -454,20 +412,20 @@ export default function Home() {
                     accent='expense'
                     delay='220ms'
                   />
-                  {monthlyInvestments.realInvestments !== 0 && (
+                  {monthlyBalance.plannedInvestments > 0 && (
                     <StatCard
                       title='Investimentos'
-                      value={valueOrMask(monthlyInvestments.realInvestments)}
-                      subtitle='Aplicado até agora'
+                      value={valueOrMask(monthlyBalance.preservedInvestments)}
+                      subtitle='Preservado para investir'
                       icon={<SavingsRoundedIcon />}
                       accent='primary'
                       delay='280ms'
                     />
                   )}
-                  {monthlyInvestments.plannedInvestments !== 0 && (
+                  {monthlyBalance.showInvestmentPlan && (
                     <StatCard
                       title='Investimento planejado'
-                      value={valueOrMask(monthlyInvestments.plannedInvestments)}
+                      value={valueOrMask(monthlyBalance.plannedInvestments)}
                       subtitle='Meta total do mês'
                       icon={<InsightsRoundedIcon />}
                       accent='secondary'
